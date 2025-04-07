@@ -1,0 +1,115 @@
+.data-table {
+    width: 100%;
+    height: calc(100% - 128px);
+    overflow: auto;
+}
+
+/* Chỉnh dữ liệu trong ô */
+.data-table .m-data-left {
+    text-align: left;
+}
+
+.data-table .m-data-center {
+    text-align: center;
+}
+
+.data-table .m-data-right {
+    text-align: right;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+table thead tr {
+    color: black;
+}
+
+table tbody tr:hover {
+    color: #1c1c1c !important;
+}
+
+table tr {
+    height: 50px;
+    border-bottom: 1px solid #dad9d9;
+    box-sizing: border-box;
+    color: #4d4d4d;
+}
+
+
+
+@media (max-width: 840px) {
+    .patient-name {
+        padding-left: 5% !important;
+    }
+}
+
+/* Áp dụng cho màn hình nhỏ và vừa */
+@media (max-width: 768px) {
+    .patient-name {
+        padding-left: 0 !important;
+        text-align: center !important;
+    }
+}
+
+/* Định dạng mặc định */
+.patient-name {
+    padding-left: 10%;
+}
+
+/* Nút Edit và More */
+table tbody tr {
+    position: relative;
+}
+
+table tbody tr .m-table-tool {
+    position: absolute;
+    right: 15px;
+    top: 6px;
+    display: flex;
+    align-items: center;
+    visibility: hidden;
+
+}
+
+table tbody tr:hover .m-table-tool {
+    visibility: visible;
+
+}
+
+table tbody tr .m-table-tool .m-tool-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+    background-color: #EFF2F4;
+}
+
+table tbody tr .m-table-tool .m-edit {
+    margin-right: 8px;
+}
+
+table tbody tr .m-table-tool .m-edit.disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+table tbody tr .m-table-tool .m-delete.disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+table tbody tr td i {
+    font-size: 20px;
+}

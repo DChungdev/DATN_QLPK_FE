@@ -1,0 +1,67 @@
+@import url(input.css);
+@import url(table.css);
+@import url(dialog.css);
+@import url(combobox.css);
+
+.main{
+    width: 100%;
+    height: calc(100vh - 134.8px);
+    box-sizing: border-box;
+    position: relative;
+    padding-left: 24px;
+    padding-right: 16px;
+}
+/* Title-table */
+.main .m-title-table{
+    width: 100%;
+    display: flex;
+    padding: 24px 0px 6px 0px;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    color: black;
+}
+.main .m-title-table .m-title-table-left{
+    font-size: 16px;
+    display: flex;
+}
+.main .m-title-table .m-title-table-right button i{
+    margin-right: 4px;
+}
+/* Toolbar-table */
+.main .m-toolbar-table{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    padding-bottom: 12px;
+    box-sizing: border-box;
+}
+.main .m-toolbar-table .m-toolbar-quickfilter input{
+    margin-top: 0;
+}
+.main .m-toolbar-table .m-toolbar-actionbar{
+    display: flex;
+    align-items: center;
+}
+.main .m-toolbar-table .m-toolbar-actionbar .m-toolbar-icon{
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    border: 1px solid #e6e6e6;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+.main .m-toolbar-table .m-toolbar-actionbar .m-toolbar-icon i{
+    font-size: 20px;
+}
+/* .main .m-toolbar-table .m-toolbar-actionbar .m-toolbar-export{
+    background-image: url(../../assets/icon/export-excel-50.png);
+    margin-right: 12px;
+}
+.main .m-toolbar-table .m-toolbar-actionbar .m-toolbar-refresh{
+    background-image: url(../../assets/icon/refresh.png);
+} */

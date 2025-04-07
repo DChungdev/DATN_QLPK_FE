@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Thông tin cá nhân</title>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS Files -->
+    <link
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/fontawesome-free/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
+    <script src="../assets/vendor/axios.min.js"></script>
+    <script src="../assets/services/axios.js"></script>
+    <script src="../assets/services/authService.js"></script>
+    <script src="../assets/services/thongTinCaNhanService.js"></script>
+    <!-- Main CSS File -->
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/popup.css" />
+    <style>
+      .input-error {
+        border: 2px solid red !important;
+      }
+    </style>
+  </head>
+
+  <body style="background-color: aliceblue">
+    <div class="m-popup-block" id="success-popup" style="top: 18%">
+      <div class="m-popup-item">
+        <div class="m-popup-icon m-popup-icon-success"></div>
+        <div class="m-popup-text-success">
+          <span>Sửa thông tin thành công!</span>
+        </div>
+        <div class="m-popup-tool">
+          <span class="m-popup-close"></span>
+        </div>
+      </div>
+    </div>
+    <div id="error-popup" class="m-popup-block" style="top: 18%">
+      <div class="m-popup-item">
+        <div class="m-popup-icon m-popup-icon-error"></div>
+        <div class="m-popup-text-error" style="width: calc(100% - 80px)">
+          <span>Có lỗi xảy ra!</span>
+        </div>
+        <div class="m-popup-tool">
+          <div class="m-popup-close"></div>
+        </div>
+      </div>
+    </div>
+    <header
+      style="
+        box-shadow: 0px 0px 30px
+          color-mix(in srgb, var(--default-color), transparent 85%);
+      "
+      id="header"
+      class="header sticky-top"
+    >
+      <div class="topbar d-flex align-items-center">
+        <div
+          class="container d-flex justify-content-center justify-content-md-between"
+        >
+          <div class="contact-info d-flex align-items-center">
+            <i class="bi bi-envelope d-flex align-items-center"
+              ><a href="mailto:contact@example.com">contact@example.com</a></i
+            >
+            <i class="bi bi-phone d-flex align-items-center ms-4"
+              ><span>+1 5589 55488 55</span></i
+            >
+          </div>
+          <div class="social-links d-none d-md-flex align-items-center">
+            <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="branding d-flex align-items-center">
+        <div
+          class="container position-relative d-flex align-items-center justify-content-between"
+        >
+          <a href="index.html" class="logo d-flex align-items-center me-auto">
+            <!-- Uncomment the line below if you also wish to use an image logo -->
+            <!-- <img src="assets/img/logo.png" alt=""> -->
+            <h1 class="sitename">PHÒNG KHÁM</h1>
+          </a>
+
+          <nav id="navmenu" class="navmenu">
+            <ul>
+              <li>
+                <a href="index.html#hero">Trang chủ<br /></a>
+              </li>
+              <li><a href="index.html#about">Giới thiệu</a></li>
+              <li><a href="index.html#services">Dịch vụ</a></li>
+              <li><a href="index.html#doctors">Bác sĩ</a></li>
+              <li><a href="index.html#contact">Liên hệ</a></li>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+          </nav>
+
+          <a class="cta-btn d-none d-sm-block" href="index.html#appointment"
+            >Đặt lịch khám</a
+          >
+
+          <div class="dropdown cta-btn" style="background-color: white">
+            <!-- <button type="button" class="btn btn-getstarted" data-bs-toggle="dropdown"> -->
+            <div class="" data-bs-toggle="dropdown">
+              <img
+                id="avatar"
+                style="height: 35px; width: 35px"
+                src="../assets/img/user.png"
+                class="rounded-circle"
+              />
+              <script>
+                $(document).ready(function () {
+                  // Lấy tên người dùng từ localStorage
+                  const loggedInUsername = localStorage.getItem("userName");
+
+                  // Kiểm tra nếu có tên người dùng và cập nhật hiển thị
+                  if (loggedInUsername) {
+                    $("#displayUser").text(loggedInUsername); // Cập nhật phần tử #displayUser
+                  }
+                });
+              </script>
+              <span id="displayUser" class="text-primary">Chung</span>
+            </div>
+            <!-- </button> -->
+            <ul
+              class="dropdown-menu border-0"
+              style="
+                box-shadow: 0px 0px 30px
+                  color-mix(in srgb, var(--default-color), transparent 85%);
+              "
+            >
+              <li class="p-2">
+                <a class="dropdown-item" href="users-profile.html">
+                  <i class="bi bi-person p-1 me-2"></i>Thông tin cá nhân</a
+                >
+              </li>
+              <li class="p-2">
+                <a class="dropdown-item" href="#">
+                  <i class="bi bi-question-circle p-1 me-2"></i>Trợ giúp</a
+                >
+              </li>
+              <li class="p-2">
+                <a class="dropdown-item" href="../login.html">
+                  <i class="bi bi-box-arrow-in-right p-1 me-2"></i>Đăng xuất</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="main d-flex">
+      <div id="sidebar" style="z-index: 1; padding-top: 100px; height: 100vh">
+        <i class="bi bi-arrow-left toggle" style="margin-top: 100px"></i>
+        <div class="d-flex flex-column">
+          <div class="profile pt-5">
+            <img
+              id="uploadedImage"
+              src="../assets/img/user.png"
+              alt=""
+              class="img-fluid rounded-circle"
+              style="border: 0; width: 200px"
+            />
+            <h1 id="hotenHeader" class="text-dark">Đức Chung</h1>
+          </div>
+
+          <nav id="navbar" class="nav-menu navbar">
+            <ul>
+              <li>
+                <a href="ThongTinCaNhan.html" class="nav-link active text-dark"
+                  ><i class="bi bi-person"></i>
+                  <span>Thông tin tài khoản</span></a
+                >
+              </li>
+              <li>
+                <a href="XemLichSuKham.html" class="nav-link text-dark"
+                  ><i class="bi bi-arrow-counterclockwise"></i>
+                  <span>Lịch sử khám bệnh</span></a
+                >
+              </li>
+              <li>
+                <a href="xemketquakham.html" class="nav-link text-dark"
+                  ><i class="bi bi-file-earmark-text"></i>
+                  <span>Kết quả khám</span></a
+                >
+              </li>
+            </ul>
+          </nav>
+          <!-- .nav-menu -->
+        </div>
+      </div>
+      <div class="content">
+        <div class="card p-3">
+          <div class="card-body">
+            <h2>Hồ Sơ Của Tôi</h2>
+            <p>Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+            <hr style="width: 100%" />
+            <form id="suaThongTin" class="row justify-content-center">
+              <div class="col-lg-9 col-md-12">
+                <table class="table col-lg-9 col-sm-12">
+                  <tbody>
+                    <tr>
+                      <th scope="row" class="col-3">Tên đăng nhập</th>
+                      <td>
+                        <input
+                          id="username"
+                          type="text"
+                          class="form-control"
+                          value=""
+                          readonly
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row" class="col-3">Mật khẩu</th>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            id="password"
+                            type="password"
+                            class="form-control"
+                            value="*************"
+                            readonly
+                          />
+                          <div class="input-group-append">
+                            <button
+                              type="button"
+                              class="btn btn-link"
+                              title="Đổi mật khẩu"
+                            >
+                              <i
+                                class="fa-solid fa-pen-to-square"
+                                data-bs-toggle="modal"
+                                data-bs-target="#changePasswordModal"
+                              ></i>
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <th scope="row">Tên</th>
+                      <td>
+                        <input
+                          id="hoten"
+                          type="text"
+                          class="form-control"
+                          value=""
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Email</th>
+                      <td>
+                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                        <input
+                          id="email"
+                          type="text"
+                          class="form-control"
+                          value=""
+                          oninput="kiemTraEmail()"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Số điện thoại</th>
+                      <td>
+                        <input
+                          id="sdt"
+                          type="text"
+                          class="form-control"
+                          value=""
+                          oninput="kiemTraSDT()"
+                        />
+                        <!-- <button type="button" class="btn btn-link">Thay Đổi</button> -->
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Giới tính</th>
+                      <td>
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="gender"
+                          id="male"
+                          value="0"
+                        />
+                        <label class="form-check-label me-3" for="male"
+                          >Nam</label
+                        >
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="gender"
+                          id="female"
+                          value="1"
+                        />
+                        <label class="form-check-label me-3" for="female"
+                          >Nữ</label
+                        >
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="gender"
+                          id="other"
+                          value="2"
+                        />
+                        <label class="form-check-label" for="other">Khác</label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Ngày sinh</th>
+                      <div class="row">
+                        <td>
+                          <div class="col-12">
+                            <input
+                              id="ngaysinh"
+                              type="date"
+                              class="form-control"
+                            />
+                          </div>
+                        </td>
+                      </div>
+                    </tr>
+                    <tr>
+                      <th scope="row">Địa chỉ</th>
+                      <td>
+                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                        <input
+                          id="diachi"
+                          type="text"
+                          class="form-control"
+                          value=""
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Tiền sử bệnh lý</th>
+                      <td>
+                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                        <input
+                          id="tiensubenhly"
+                          type="text"
+                          class="form-control"
+                          value=""
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-lg-3 col-md-12">
+                <div scope="row">Chọn Ảnh</div>
+                <div>
+                  <img
+                    id="previewImage"
+                    class="img-thumnail"
+                    src="../assets/img/user.png"
+                    alt=""
+                    style="width: 100%"
+                  />
+                </div>
+                <div>
+                  <input
+                    id="fileInput"
+                    type="file"
+                    class="form-control"
+                    accept=".jpeg, .png"
+                  />
+                  <small class="form-text text-muted"
+                    >Dung lượng file tối đa 1 MB. Định dạng: JPEG, PNG</small
+                  >
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success col-lg-1 col-sm-3">
+                Lưu
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal Change Password-->
+        <div
+          class="modal fade"
+          id="changePasswordModal"
+          tabindex="-1"
+          aria-labelledby="changePasswordModalLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">
+                  Đổi Mật Khẩu
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <form id="changePasswordForm">
+                  <div class="mb-3">
+                    <label for="currentPassword" class="form-label"
+                      >Mật khẩu hiện tại</label
+                    >
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="currentPassword"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="newPassword" class="form-label"
+                      >Mật khẩu mới</label
+                    >
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="newPassword"
+                      required
+                      oninput="kiemTraMatKhau()"
+                    />
+                    <span
+                      id="pass-msg"
+                      class="text-danger"
+                      style="font-size: 10px"
+                    ></span>
+                  </div>
+                  <div class="mb-3">
+                    <label for="confirmPassword" class="form-label"
+                      >Xác nhận mật khẩu mới</label
+                    >
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="confirmPassword"
+                      required
+                      oninput="checkConfirm()"
+                    />
+                  </div>
+                  <span
+                    class="text-danger"
+                    id="msg"
+                    style="font-size: 10px"
+                  ></span>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Đóng
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  data-bs-dismiss="modal"
+                  id="savePasswordBtn"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer id="footer" class="footer light-background">
+
+   
+
+          <div class="container copyright text-center mt-4">
+            <p>© <span>Nhóm 7</span> <strong class="px-1 sitename">Phòng khám đa khoa</strong> <span></span></p>
+            <div class="credits">
+              <!-- All the links in the footer should remain intact. -->
+              <!-- You can delete the links only if you've purchased the pro version. -->
+              <!-- Licensing information: https://bootstrapmade.com/license/ -->
+              <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
+              Designed by <a href="https://bootstrapmade.com/">Nhóm 7</a>
+            </div>
+          </div>
+      
+        </footer>
+      </div>
+    </main>
+
+    <!-- Scroll Top -->
+    <a
+      href="#"
+      id="scroll-top"
+      class="scroll-top d-flex align-items-center justify-content-center"
+      ><i class="bi bi-arrow-up-short"></i
+    ></a>
+
+    <!-- Preloader -->
+    <div id="preloader"></div>
+
+    <!-- Vendor JS Files -->
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/vendor/php-email-form/validate.js"></script>
+    <script src="../assets/vendor/aos/aos.js"></script>
+    <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Main JS File -->
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/sidebarUser.js"></script>
+    <script>
+      function getAvata() {
+        var userId = localStorage.getItem("userId");
+        console.log(userId);
+        // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
+        axiosJWT
+          .get(`/api/Patients/getbyuserid/${userId}`)
+          .then(function (response) {
+            let bn = response.data;
+            if (bn.hinhAnh != null) {
+              $("#avatar").attr("src", "http://localhost:37649" + bn.hinhAnh);
+            }
+          })
+          .catch(function (error) {
+            console.error("Lỗi không tìm được:", error);
+          });
+      }
+      function kiemTraEmail() {
+        const emailInput = document.getElementById("email");
+        const email = emailInput.value;
+        // Biểu thức chính quy kiểm tra định dạng email hợp lệ
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+        if (emailRegex.test(email)) {
+          emailInput.classList.remove("input-error");
+        } else {
+          emailInput.classList.add("input-error");
+        }
+      }
+      function kiemTraSDT() {
+        const sdtInput = document.getElementById("sdt");
+        const sdt = sdtInput.value;
+        // Biểu thức chính quy kiểm tra định dạng email hợp lệ
+        const sdtRegex = /^0[0-9]*$/;
+
+        if (sdtRegex.test(sdt)) {
+          sdtInput.classList.remove("input-error");
+        } else {
+          sdtInput.classList.add("input-error");
+        }
+      }
+      function kiemTraMatKhau() {
+        const passwordInput = document.getElementById("newPassword");
+
+        const password = passwordInput.value;
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{4,}$/;
+
+        if (regex.test(password)) {
+          passwordInput.classList.remove("input-error");
+          $("#pass-msg").text("");
+        } else {
+          passwordInput.classList.add("input-error");
+          $("#pass-msg").text(
+            "Mật khẩu phải chứa ít nhất 1 ký tự hoa, thường, số, ký tự đặc biệt"
+          );
+        }
+      }
+      $(document).ready(function () {
+        console.log("co chay");
+        document
+          .getElementById("fileInput")
+          .addEventListener("change", function (event) {
+            var file = event.target.files[0]; // Lấy file người dùng chọn
+            if (file) {
+              var reader = new FileReader();
+
+              reader.onload = function (e) {
+                // Set nguồn ảnh mới cho thẻ <img>
+                document.getElementById("previewImage").src = e.target.result;
+              };
+
+              // Đọc file ảnh dưới dạng Data URL (base64)
+              reader.readAsDataURL(file);
+            }
+          });
+        getAvata();
+      });
+    </script>
+  </body>
+</html>

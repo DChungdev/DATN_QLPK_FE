@@ -1,0 +1,42 @@
+.m-input{
+    width: 260px;
+    height: 36px;
+    box-sizing: border-box;
+    margin-top: 8px;
+    padding-left: 12px;
+    border-radius: 4px;
+    border: 1px solid #E0E0E0;
+    font-size: 14px;
+    outline: none;
+}
+.m-input::placeholder{
+    color: #9E9E9E;
+    font-size: 14px;
+}
+.m-input:hover{
+    background-color: #F6F6F6;
+    border: 1px solid #EBEBEB;
+}
+.m-input:active{
+    border-color: #50B83C;
+    
+}
+.m-input:focus{
+    border-color: #50B83C;
+}
+.m-input-error{
+    border-color: #E61D1D;
+    margin-bottom: 8px;
+}
+.m-input-error-msg{
+    color: #E61D1D;
+    font-size: 12px;
+}
+.m-input-icon{
+    background-repeat: no-repeat;
+    background-position: 232px center;
+    background-size: 20px;
+}
+.m-input-search{
+    background-image: url(icons/search.png);
+}

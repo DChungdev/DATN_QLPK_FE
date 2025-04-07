@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Lịch sử khám</title>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS Files -->
+    <link
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/fontawesome-free/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
+    <script src="../assets/vendor/axios.min.js"></script>
+    <script src="../assets/services/axios.js"></script>
+    <script src="../assets/services/authService.js"></script>
+    <script src="../assets/services/thongTinCaNhanService.js"></script>
+    <!-- Main CSS File -->
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/popup.css" />
+    <link rel="stylesheet" href="../assets/css/xemlichkham.css" />
+  </head>
+
+  <body style="background-color: aliceblue">
+    <div class="m-popup-block" id="success-popup" style="top: 18%">
+      <div class="m-popup-item">
+        <div class="m-popup-icon m-popup-icon-success"></div>
+        <div class="m-popup-text-success">
+          <span>Sửa thông tin thành công!</span>
+        </div>
+        <div class="m-popup-tool">
+          <span class="m-popup-close"></span>
+        </div>
+      </div>
+    </div>
+    <div id="error-popup" class="m-popup-block" style="top: 18%">
+      <div class="m-popup-item">
+        <div class="m-popup-icon m-popup-icon-error"></div>
+        <div class="m-popup-text-error" style="width: calc(100% - 80px)">
+          <span>Có lỗi xảy ra!</span>
+        </div>
+        <div class="m-popup-tool">
+          <div class="m-popup-close"></div>
+        </div>
+      </div>
+    </div>
+    <header
+      style="
+        box-shadow: 0px 0px 30px
+          color-mix(in srgb, var(--default-color), transparent 85%);
+      "
+      id="header"
+      class="header sticky-top"
+    >
+      <div class="topbar d-flex align-items-center">
+        <div
+          class="container d-flex justify-content-center justify-content-md-between"
+        >
+          <div class="contact-info d-flex align-items-center">
+            <i class="bi bi-envelope d-flex align-items-center"
+              ><a href="mailto:contact@example.com">contact@example.com</a></i
+            >
+            <i class="bi bi-phone d-flex align-items-center ms-4"
+              ><span>+1 5589 55488 55</span></i
+            >
+          </div>
+          <div class="social-links d-none d-md-flex align-items-center">
+            <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="branding d-flex align-items-center">
+        <div
+          class="container position-relative d-flex align-items-center justify-content-between"
+        >
+          <a href="index.html" class="logo d-flex align-items-center me-auto">
+            <!-- Uncomment the line below if you also wish to use an image logo -->
+            <!-- <img src="assets/img/logo.png" alt=""> -->
+            <h1 class="sitename">Phòng khám</h1>
+          </a>
+
+          <nav id="navmenu" class="navmenu">
+            <ul>
+              <li>
+                <a href="index.html#hero">Trang chủ<br /></a>
+              </li>
+              <li><a href="index.html#about">Giới thiệu</a></li>
+              <li><a href="index.html#services">Dịch vụ</a></li>
+              <li><a href="index.html#doctors">Bác sĩ</a></li>
+              <li><a href="index.html#contact">Liên hệ</a></li>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+          </nav>
+
+          <a class="cta-btn d-none d-sm-block" href="index.html#appointment"
+            >Đặt lịch khám</a
+          >
+
+          <div class="dropdown cta-btn" style="background-color: white">
+            <!-- <button type="button" class="btn btn-getstarted" data-bs-toggle="dropdown"> -->
+            <div class="" data-bs-toggle="dropdown">
+              <img
+                id="avatar"
+                style="height: 35px; width: 35px"
+                src="../assets/img/user.png"
+                class="rounded-circle"
+              />
+              <script>
+                $(document).ready(function () {
+                  // Lấy tên người dùng từ localStorage
+                  const loggedInUsername = localStorage.getItem("userName");
+
+                  // Kiểm tra nếu có tên người dùng và cập nhật hiển thị
+                  if (loggedInUsername) {
+                    $("#displayUser").text(loggedInUsername); // Cập nhật phần tử #displayUser
+                  }
+                });
+              </script>
+              <span id="displayUser" class="text-primary">Chung</span>
+            </div>
+            <!-- </button> -->
+            <ul
+              class="dropdown-menu border-0"
+              style="
+                box-shadow: 0px 0px 30px
+                  color-mix(in srgb, var(--default-color), transparent 85%);
+              "
+            >
+              <li class="p-2">
+                <a class="dropdown-item" href="users-profile.html">
+                  <i class="bi bi-person p-1 me-2"></i>Thông tin cá nhân</a
+                >
+              </li>
+              <li class="p-2">
+                <a class="dropdown-item" href="#">
+                  <i class="bi bi-question-circle p-1 me-2"></i>Trợ giúp</a
+                >
+              </li>
+              <li class="p-2">
+                <a class="dropdown-item" href="../login.html">
+                  <i class="bi bi-box-arrow-in-right p-1 me-2"></i>Đăng xuất</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="main d-flex">
+      <div id="sidebar" style="z-index: 1; padding-top: 100px; height: 100vh">
+        <i class="bi bi-arrow-left toggle" style="margin-top: 100px"></i>
+        <div class="d-flex flex-column">
+          <div class="profile pt-5">
+            <img
+              id="uploadedImage"
+              src="../assets/img/user.png"
+              alt=""
+              class="img-fluid rounded-circle"
+              style="border: 0; width: 200px"
+            />
+            <h1 id="hotenHeader" class="text-dark">Đức Chung</h1>
+          </div>
+
+          <nav id="navbar" class="nav-menu navbar">
+            <ul>
+              <li>
+                <a href="ThongTinCaNhan.html" class="nav-link text-dark"
+                  ><i class="bi bi-person"></i>
+                  <span>Thông tin tài khoản</span></a
+                >
+              </li>
+              <li>
+                <a href="XemLichSuKham.html" class="nav-link active text-dark"
+                  ><i class="bi bi-arrow-counterclockwise"></i>
+                  <span>Lịch sử khám bệnh</span></a
+                >
+              </li>
+              <li>
+                <a href="xemketquakham.html" class="nav-link text-dark"
+                  ><i class="bi bi-file-earmark-text"></i>
+                  <span>Kết quả khám</span></a
+                >
+              </li>
+            </ul>
+          </nav>
+          <!-- .nav-menu -->
+        </div>
+      </div>
+      <div class="content">
+        <div id="container_lk" class="mt-3" style="min-height: 68%">
+          <div class="row"></div>
+        </div>
+        <!-- DIALOG XÁC NHẬN HỦY -->
+        <!-- The Modal -->
+        <div class="modal fade" id="modal-confirm-complete">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Xác nhận</h4>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                Bạn có chắc chắn muốn hoàn thành lịch khám này?
+              </div>
+
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button class="btn btn-secondary me-3" data-bs-dismiss="modal">
+                  Không
+                </button>
+                <button
+                  id="btnComplete"
+                  type="button"
+                  class="btn btn-success"
+                  data-bs-dismiss="modal"
+                >
+                  Có
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- DIALOG XÁC NHẬN HỦY -->
+        <!-- The Modal -->
+        <div class="modal fade" id="modal-confirm-cancel">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Xác nhận hủy</h4>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                <div class="row mb-3">
+                  <div class="col-md-12 form-group mt-3">
+                    <input
+                      type="text"
+                      name="reason"
+                      class="form-control"
+                      id="reason"
+                      placeholder="Lý do"
+                    />
+                  </div>
+                </div>
+                Bạn có chắc chắn muốn hủy lịch khám này?
+              </div>
+
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button class="btn btn-secondary me-3" data-bs-dismiss="modal">
+                  Không
+                </button>
+                <button
+                  id="btnCancel"
+                  type="button"
+                  class="btn btn-danger"
+                >
+                  Có
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- DIALOG XÁC NHẬN XÓA -->
+        <!-- The Modal -->
+        <div class="modal fade" id="modal-confirm-delete">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Xác nhận xóa</h4>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                Bạn có chắc chắn muốn xóa lịch khám này?
+              </div>
+
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button class="btn btn-secondary me-3" data-bs-dismiss="modal">
+                  Không
+                </button>
+                <button
+                  id="btnDelete"
+                  type="button"
+                  class="btn btn-danger"
+                  data-bs-dismiss="modal"
+                >
+                  Có
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- DIALOG ADD RESULT APPOINTMENT -->
+        <!-- The Modal -->
+        <div class="modal fade" id="modal-view-result">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Xem kết quả lịch khám</h4>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                <div class="container" data-aos="fade-up" data-aos-delay="100">
+                  <div class="php-email-form">
+                    <div class="row">
+                      <div class="col-md form-group mt-3 mt-md-0">
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="diagnose"
+                          id="diagnose"
+                          placeholder="Chẩn đoán"
+                          readonly
+                        />
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md form-group mt-3">
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="prescription"
+                          id="prescription"
+                          placeholder="Chỉ định thuốc"
+                          readonly
+                        />
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md form-group mt-3">
+                        <textarea
+                          class="form-control"
+                          id="note"
+                          name="note"
+                          rows="5"
+                          placeholder="Ghi chú"
+                          readonly
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal footer -->
+              <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                <button
+                  type="button"
+                  class="btn btn-success"
+                  data-bs-dismiss="modal"
+                >
+                  Thoát
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- POPUP TOAST MESSAGE -->
+        <div class="m-popup-block">
+          <div class="m-popup-item m-popup-success">
+            <div class="m-popup-icon m-popup-icon-success"></div>
+            <div class="m-popup-text m-popup-text-success">
+              <span>Thành công! </span>Công việc đã bị xóa.
+            </div>
+            <div class="m-popup-tool">
+              <div class="m-popup-undo">Hoàn tác</div>
+              <div class="m-popup-close"></div>
+            </div>
+          </div>
+          <div class="m-popup-item m-popup-error">
+            <div class="m-popup-icon m-popup-icon-error"></div>
+            <div class="m-popup-text m-popup-text-error">
+              <span>Lỗi! </span>Không thể cập nhật được dữ liệu.
+            </div>
+            <div class="m-popup-tool">
+              <div class="m-popup-undo">Xem hướng dẫn</div>
+              <div class="m-popup-close"></div>
+            </div>
+          </div>
+        </div>
+        <footer id="footer" class="footer light-background">
+
+   
+
+          <div class="container copyright text-center mt-4">
+            <p>© <span>Nhóm 7</span> <strong class="px-1 sitename">Phòng khám đa khoa</strong> <span></span></p>
+            <div class="credits">
+              <!-- All the links in the footer should remain intact. -->
+              <!-- You can delete the links only if you've purchased the pro version. -->
+              <!-- Licensing information: https://bootstrapmade.com/license/ -->
+              <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
+              Designed by <a href="https://bootstrapmade.com/">Nhóm 7</a>
+            </div>
+          </div>
+      
+        </footer>
+      </div>
+    </main>
+
+    <!-- Scroll Top -->
+    <a
+      href="#"
+      id="scroll-top"
+      class="scroll-top d-flex align-items-center justify-content-center"
+      ><i class="bi bi-arrow-up-short"></i
+    ></a>
+
+    <!-- Preloader -->
+    <div id="preloader"></div>
+
+    <!-- Vendor JS Files -->
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/vendor/php-email-form/validate.js"></script>
+    <script src="../assets/vendor/aos/aos.js"></script>
+    <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Main JS File -->
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/sidebarUser.js"></script>
+    <script src="../assets/services/medicalHistoryService.js"></script>
+  </body>
+</html>

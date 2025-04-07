@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+*.suo
+*.cache
+*.bin
+*.dll
+
+Backend/QuanLyPhongKham.WebAPI/.vs/ProjectEvaluation/quanlyphongkham.webapi.metadata.v7.bin
+Backend/QuanLyPhongKham.WebAPI/.vs/QuanLyPhongKham.WebAPI/v17/.suo
+Backend/QuanLyPhongKham.WebAPI/.vs/QuanLyPhongKham.WebAPI/v17/.futdcache.v2
+*.AssemblyReference.cache
+Backend/QuanLyPhongKham.WebAPI/QuanLyPhongKham.Business/obj/Debug/net6.0/QuanLyPhongKham.Business.csproj.AssemblyReference.cache
+Backend/QuanLyPhongKham.WebAPI/QuanLyPhongKham.Data/obj/Debug/net6.0/QuanLyPhongKham.Data.csproj.AssemblyReference.cache
+Backend/QuanLyPhongKham.WebAPI/QuanLyPhongKham.WebAPI/obj/Debug/net6.0/QuanLyPhongKham.WebAPI.csproj.AssemblyReference.cache

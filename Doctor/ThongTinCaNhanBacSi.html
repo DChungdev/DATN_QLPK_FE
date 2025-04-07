@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!-- Favicon icon -->
+    <title>Quản lý bác sĩ</title>
+    <!-- Custom CSS -->
+    <link href="../assets/extra-libs/c3/c3.min.css" rel="stylesheet" />
+    <link
+      href="../assets/libs/chartist/dist/chartist.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../assets/extra-libs/jvector/jquery-jvectormap-2.0.2.css"
+      rel="stylesheet"
+    />
+
+    <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
+    <script src="../assets/vendor/axios.min.js"></script>
+    <script src="../assets/services/axios.js"></script>
+    <script src="../assets/services/authService.js"></script>
+    <script src="../assets/services/thongTinBacSiDoctor.js"></script>
+    <script src="../assets/services/getDoctorNameAndAvt.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/content.css" />
+    <link
+      href="../assets/vendor/fontawesome-free/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+      <div class="lds-ripple">
+        <div class="lds-pos"></div>
+        <div class="lds-pos"></div>
+      </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- Main wrapper - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div
+      id="main-wrapper"
+      data-theme="light"
+      data-layout="vertical"
+      data-navbarbg="skin6"
+      data-sidebartype="full"
+      data-sidebar-position="fixed"
+      data-header-position="fixed"
+      data-boxed-layout="full"
+    >
+      <!-- ============================================================== -->
+      <!-- Topbar header - style you can find in pages.scss -->
+      <!-- ============================================================== -->
+      <div class="m-popup-block" id="success-popup" style="top: 18%">
+        <div class="m-popup-item">
+          <div class="m-popup-icon m-popup-icon-success"></div>
+          <div class="m-popup-text-success">
+            <span>Sửa thông tin thành công!</span>
+          </div>
+          <div class="m-popup-tool">
+            <span class="m-popup-close"></span>
+          </div>
+        </div>
+      </div>
+      <div id="error-popup" class="m-popup-block" style="top: 18%">
+        <div class="m-popup-item">
+          <div class="m-popup-icon m-popup-icon-error"></div>
+          <div class="m-popup-text-error" style="width: calc(100% - 80px)">
+            <span>Có lỗi xảy ra!</span>
+          </div>
+          <div class="m-popup-tool">
+            <div class="m-popup-close"></div>
+          </div>
+        </div>
+      </div>
+      <header class="topbar" data-navbarbg="skin6">
+        <nav class="navbar top-navbar navbar-expand-md">
+          <div class="navbar-header" data-logobg="skin6">
+            <!-- This is for the sidebar toggle which is visible on mobile only -->
+            <a
+              class="nav-toggler waves-effect waves-light d-block d-md-none"
+              href="javascript:void(0)"
+              ><i class="ti-menu ti-close"></i
+            ></a>
+            <!-- ============================================================== -->
+            <!-- Logo -->
+            <!-- ============================================================== -->
+            <div class="navbar-brand">
+              <!-- Logo icon -->
+              <a href="index.html">
+                <b class="logo-icon">
+                  <!-- Dark Logo icon -->
+                  <img
+                    src="../assets/img/logo-icon.png"
+                    alt="homepage"
+                    class="dark-logo"
+                  />
+                  <!-- Light Logo icon -->
+                  <img
+                    src="../assets/img/logo-icon.png"
+                    alt="homepage"
+                    class="light-logo"
+                  />
+                </b>
+                <!--End Logo icon -->
+                <!-- Logo text -->
+                <span class="logo-text">
+                  <!-- dark Logo text -->
+                  <img
+                    src="../assets/img/logo-text.png"
+                    alt="homepage"
+                    class="dark-logo"
+                  />
+                  <!-- Light Logo text -->
+                  <img
+                    src="../assets/img/logo-light-text.png"
+                    class="light-logo"
+                    alt="homepage"
+                  />
+                </span>
+              </a>
+            </div>
+            <!-- ============================================================== -->
+            <!-- End Logo -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Toggle which is visible on mobile only -->
+            <!-- ============================================================== -->
+            <a
+              class="topbartoggler d-block d-md-none waves-effect waves-light"
+              href="javascript:void(0)"
+              data-toggle="collapse"
+              data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+              ><i class="ti-more"></i
+            ></a>
+          </div>
+          <!-- ============================================================== -->
+          <!-- End Logo -->
+          <!-- ============================================================== -->
+          <div class="navbar-collapse collapse" id="navbarSupportedContent">
+            <!-- ============================================================== -->
+            <!-- toggle and nav items -->
+            <!-- ============================================================== -->
+            <ul class="navbar-nav float-left mr-auto ml-3 pl-1">
+              <!-- Notification -->
+            </ul>
+            <!-- ============================================================== -->
+            <!-- Right side toggle and nav items -->
+            <!-- ============================================================== -->
+            <ul class="navbar-nav float-right">
+              <!-- ============================================================== -->
+              <!-- User profile and search -->
+              <!-- ============================================================== -->
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="javascript:void(0)"
+                  data-bs-toggle="dropdown"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <img
+                    id="uploadedImage"
+                    src="../assets/img/users/profile-pic.jpg"
+                    alt="user"
+                    class="rounded-circle"
+                    width="40"
+                  />
+                  <span class="ml-2 d-none d-lg-inline-block"
+                    ><span>Hello,</span>
+                    <span class="text-dark" id="hotenHeader">Doctor</span>
+                    <!-- <i data-feather="chevron-down" class="svg-icon"></i
+                  > -->
+                </span>
+                </a>
+                <!-- <div
+                  class="dropdown-menu dropdown-menu-end user-dd animated flipInY"
+                >
+                  <a class="dropdown-item my-2" href="javascript:void(0)"
+                    ><i data-feather="user" class="svg-icon mr-2 ml-1"></i> My
+                    Profile</a
+                  >
+                  <a class="dropdown-item my-2" href="javascript:void(0)"
+                    ><i
+                      data-feather="credit-card"
+                      class="svg-icon mr-2 ml-1"
+                    ></i>
+                    My Balance</a
+                  >
+                  <a class="dropdown-item my-2" href="javascript:void(0)"
+                    ><i data-feather="mail" class="svg-icon mr-2 ml-1"></i>
+                    Inbox</a
+                  >
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="javascript:void(0)"
+                    ><i data-feather="settings" class="svg-icon mr-2 ml-1"></i>
+                    Account Setting</a
+                  >
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="javascript:void(0)"
+                    ><i data-feather="power" class="svg-icon mr-2 ml-1"></i>
+                    Logout</a
+                  >
+                  <div class="dropdown-divider"></div>
+                  <div class="pl-4 p-3">
+                    <a href="javascript:void(0)" class="btn btn-sm btn-info"
+                      >View Profile</a
+                    >
+                  </div>
+                </div> -->
+              </li>
+              <!-- ============================================================== -->
+              <!-- User profile and search -->
+              <!-- ============================================================== -->
+            </ul>
+          </div>
+        </nav>
+      </header>
+      <!-- ============================================================== -->
+      <!-- End Topbar header -->
+      <!-- ============================================================== -->
+      <!-- ============================================================== -->
+      <!-- Left Sidebar - style you can find in sidebar.scss  -->
+      <!-- ============================================================== -->
+      <aside class="left-sidebar" data-sidebarbg="skin6">
+        <!-- Sidebar scroll-->
+        <div class="scroll-sidebar" data-sidebarbg="skin6">
+          <!-- Sidebar navigation-->
+          <nav class="sidebar-nav">
+            <ul id="sidebarnav">
+              <li class="sidebar-item">
+                <a
+                  class="sidebar-link sidebar-link "
+                  href="MainDoctor.html"
+                  aria-expanded="false"
+                  ><i data-feather="home" class="feather-icon"></i
+                  ><span class="hide-menu">Trang chủ</span></a
+                >
+              </li>
+              <li class="list-divider"></li>
+              <li class="nav-small-cap">
+                <span class="hide-menu">Quản lý</span>
+              </li>
+
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="XemLichKham.html" aria-expanded="false"><i data-feather="user"
+                    class="feather-icon"></i><span class="hide-menu">Lịch khám</span></a>
+              </li>
+              <li class="sidebar-item ">
+                <a class="sidebar-link sidebar-link " href="XemBenhNhan.html" aria-expanded="false"><i
+                    data-feather="users" class="feather-icon"></i><span class="hide-menu">Bệnh nhân</span></a>
+              </li>
+              <li class="sidebar-item ">
+                <a class="sidebar-link sidebar-link " href="QLKhamBenh.html" aria-expanded="false"><i data-feather="users"
+                    class="feather-icon"></i><span class="hide-menu">Kết quả khám</span></a>
+              </li>
+
+              <li class="list-divider"></li>
+              <li class="nav-small-cap">
+                <span class="hide-menu">Người dùng</span>
+              </li>
+        
+              <li class="sidebar-item">
+                <a
+                  class="sidebar-link sidebar-link"
+                  href="ThongTinCaNhanBacSi.html"
+                  aria-expanded="false"
+                  ><i data-feather="user" class="feather-icon"></i
+                  ><span class="hide-menu">Thông tin cá nhân</span></a
+                >
+              </li>
+              <li class="sidebar-item ">
+                <a
+                  class="sidebar-link  "
+                  href="../login.html"
+                  aria-expanded="false"
+                  ><i data-feather="log-out" class="feather-icon"></i
+                  ><span class="hide-menu">Logout</span></a
+                >
+              </li>
+            </ul>
+          </nav>
+          <!-- End Sidebar navigation -->
+        </div>
+        <!-- End Sidebar scroll-->
+      </aside>
+      <!-- ============================================================== -->
+      <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+      <!-- ============================================================== -->
+      <!-- ============================================================== -->
+      <!-- Page wrapper  -->
+      <!-- ============================================================== -->
+      <div class="page-wrapper">
+        <div class="content m-3">
+            <div class="card p-3">
+                <div class="card-body">
+                  <h2>Hồ sơ của tôi</h2>
+                  <p>Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+                  <hr style="width: 100%" />
+                  <form id="suaThongTin" class="row justify-content-center">
+                    <div class="col-lg-9 col-md-12">
+                      <table class="table col-lg-9 col-sm-12">
+                        <tbody>
+                          <tr>
+                            <th scope="row" class="col-3">Tên đăng nhập</th>
+                            <td>
+                              <input
+                                id="username"
+                                type="text"
+                                class="form-control"
+                                value=""
+                                readonly
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <th scope="row" class="col-3">Mật khẩu</th>
+                            <td>
+                              <div class="input-group">
+                                <input
+                                  id="password"
+                                  type="password"
+                                  class="form-control"
+                                  value="*************"
+                                  readonly
+                                />
+                                <div class="input-group-append">
+                                  <button
+                                    type="button"
+                                    class="btn btn-link"
+                                    title="Đổi mật khẩu"
+                                  >
+                                    <i
+                                      class="fa-solid fa-pen-to-square"
+                                      data-bs-toggle="modal"
+                                      data-bs-target="#changePasswordModal"
+                                    ></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+      
+                          <tr>
+                            <th scope="row">Tên</th>
+                            <td>
+                              <input
+                                id="hoten"
+                                type="text"
+                                class="form-control"
+                                value=""
+                              />
+                            </td>
+                          </tr>
+      
+                          <tr>
+                            <th scope="row">Bằng cấp</th>
+                            <td>
+                              <select name="bangCap" id="bangCap">
+                                <option value="0">Giáo sư Y khoa</option>
+                                <option value="1">Phó Giáo sư Y khoa</option>
+                                <option value="2">Tiến sĩ Y khoa</option>
+                                <option value="3">Bác sĩ Chuyên khoa 2</option>
+                                <option value="4">Thạc sĩ Y khoa</option>
+                                <option value="5">Bác sĩ Chuyên khoa 1</option>
+                                <option value="6">Bác sĩ Đa khoa</option>
+                              </select>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th scope="row">Số điện thoại</th>
+                            <td>
+                              <input
+                                id="sdt"
+                                type="text"
+                                class="form-control"
+                                value=""
+                                oninput="kiemTraSDT()"
+                              />
+                              <!-- <button type="button" class="btn btn-link">Thay Đổi</button> -->
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th scope="row">Email</th>
+                            <td>
+                              <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                              <input
+                                id="email"
+                                type="text"
+                                class="form-control"
+                                value=""
+                                oninput="kiemTraEmail()"
+                              />
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th scope="row">Địa chỉ</th>
+                            <td>
+                              <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                              <input
+                                id="diaChi"
+                                type="text"
+                                class="form-control"
+                                value=""
+                              />
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th scope="row">Năm kinh nghiệm</th>
+                            <td>
+                              <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
+                              <input
+                                id="namKinhNghiem"
+                                type="text"
+                                class="form-control"
+                                value=""
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="col-lg-3 col-md-12">
+                      <div scope="row">Chọn Ảnh</div>
+                      <div>
+                        <img
+                          id="previewImage"
+                          class="img-thumnail"
+                          src="../assets/img/user.png"
+                          alt=""
+                          style="width: 100%"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          id="fileInput"
+                          type="file"
+                          class="form-control"
+                          accept=".jpeg, .png"
+                        />
+                        <small class="form-text text-muted"
+                          >Dung lượng file tối đa 1 MB. Định dạng: JPEG, PNG</small
+                        >
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-success col-lg-1 col-sm-3">
+                      Lưu
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <!-- Modal Change Password-->
+        <div
+        class="modal fade"
+        id="changePasswordModal"
+        tabindex="-1"
+        aria-labelledby="changePasswordModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="changePasswordModalLabel">
+                Đổi Mật Khẩu
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <form id="changePasswordForm">
+                <div class="mb-3">
+                  <label for="currentPassword" class="form-label"
+                    >Mật khẩu hiện tại</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="currentPassword"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="newPassword" class="form-label"
+                    >Mật khẩu mới</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="newPassword"
+                    required
+                    oninput="kiemTraMatKhau()"
+                  />
+                  <span
+                    id="pass-msg"
+                    class="text-danger"
+                    style="font-size: 10px"
+                  ></span>
+                </div>
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label"
+                    >Xác nhận mật khẩu mới</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="confirmPassword"
+                    required
+                    oninput="checkConfirm()"
+                  />
+                </div>
+                <span
+                  class="text-danger"
+                  id="msg"
+                  style="font-size: 10px"
+                ></span>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                id="savePasswordBtn"
+              >
+                Lưu thay đổi
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <footer class="footer text-center text-muted">
+          Designed and Developed by <b class="text-primary">Nhóm 7</b>
+        </footer>
+        <!-- ============================================================== -->
+        <!-- End footer -->
+        <!-- ============================================================== -->
+      </div>
+      <!-- ============================================================== -->
+      <!-- End Page wrapper  -->
+      <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- End Wrapper -->
+    <!-- ============================================================== -->
+    <!-- End Wrapper -->
+    <!-- ============================================================== -->
+    <!-- All Jquery -->
+    <!-- ============================================================== -->
+    <script src="../assets/libs/jquery/dist/jquery.min.js"></script>
+    <script src="../assets/libs/popper.js/dist/umd/popper.min.js"></script>
+    <!-- <script src="../assets/libs/bootstrap/dist/js/bootstrap.min.js"></script> -->
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
+    />
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- apps -->
+    <!-- apps -->
+    <script src="../assets/js/app-style-switcher.js"></script>
+    <script src="../assets/js/feather.min.js"></script>
+    <script src="../assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
+    <script src="../assets/js/sidebarmenu.js"></script>
+    <!--Custom JavaScript -->
+    <script src="../assets/js/custom.min.js"></script>
+    <!--This page JavaScript -->
+    <script src="../assets/extra-libs/c3/d3.min.js"></script>
+    <script src="../assets/extra-libs/c3/c3.min.js"></script>
+    <script src="../assets/libs/chartist/dist/chartist.min.js"></script>
+    <script src="../assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js"></script>
+    <script src="../assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js"></script>
+    <script src="../assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js"></script>
+    <!-- <script src="../assets/js/pages/dashboards/dashboard1.min.js"></script> -->
+     <script>
+      function getAvata() {
+        var userId = localStorage.getItem("doctorId");
+        // console.log(userId);
+        // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
+        axiosJWT
+          .get(`/api/Doctors/getbyuserid/${userId}`)
+          .then(function (response) {
+            let bs = response.data;
+            if (bs.hinhAnh != null) {
+              $("#avatar").attr("src", "http://localhost:37649" + bs.hinhAnh);
+            }
+          })
+          .catch(function (error) {
+            console.error("Lỗi không tìm được:", error);
+          });
+      }
+      function kiemTraEmail() {
+        const emailInput = document.getElementById("email");
+        const email = emailInput.value;
+        // Biểu thức chính quy kiểm tra định dạng email hợp lệ
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
+        if (emailRegex.test(email)) {
+          emailInput.classList.remove("input-error");
+        } else {
+          emailInput.classList.add("input-error");
+        }
+      }
+      function kiemTraSDT() {
+        const sdtInput = document.getElementById("sdt");
+        const sdt = sdtInput.value;
+        // Biểu thức chính quy kiểm tra định dạng email hợp lệ
+        const sdtRegex = /^0[0-9]*$/;
+
+        if (sdtRegex.test(sdt)) {
+          sdtInput.classList.remove("input-error");
+        } else {
+          sdtInput.classList.add("input-error");
+        }
+      }
+      function kiemTraMatKhau() {
+        const passwordInput = document.getElementById("newPassword");
+
+        const password = passwordInput.value;
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{4,}$/;
+
+        if (regex.test(password)) {
+          passwordInput.classList.remove("input-error");
+          $("#pass-msg").text("");
+        } else {
+          passwordInput.classList.add("input-error");
+          $("#pass-msg").text(
+            "Mật khẩu phải chứa ít nhất 1 ký tự hoa, thường, số, ký tự đặc biệt"
+          );
+        }
+      }
+      $(document).ready(function () {
+        // console.log("co chay");
+        document
+          .getElementById("fileInput")
+          .addEventListener("change", function (event) {
+            var file = event.target.files[0]; // Lấy file người dùng chọn
+            if (file) {
+              var reader = new FileReader();
+
+              reader.onload = function (e) {
+                // Set nguồn ảnh mới cho thẻ <img>
+                document.getElementById("previewImage").src = e.target.result;
+              };
+
+              // Đọc file ảnh dưới dạng Data URL (base64)
+              reader.readAsDataURL(file);
+            }
+          });
+        getAvata();
+      });
+    </script>
+  </body>
+</html>
