@@ -175,6 +175,139 @@
       justify-content: flex-end;
       gap: 5px;
     }
+
+    .action-buttons .btn {
+      padding: 0.25rem 0.4rem;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .action-buttons .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .action-buttons .btn-info {
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+
+    .action-buttons .btn-info:hover {
+      background-color: #138496;
+      border-color: #117a8b;
+    }
+
+    .action-buttons .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .action-buttons .btn-primary:hover {
+      background-color: #0069d9;
+      border-color: #0062cc;
+    }
+
+    .action-buttons .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .action-buttons .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    /* Styles for image column */
+    #tblBenhNhan td:nth-child(3) {
+      text-align: center;
+      padding: 5px;
+    }
+
+    #tblBenhNhan td:nth-child(3) .image-preview {
+      margin: 0 auto;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #tblBenhNhan td:nth-child(3) img {
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    #tblBenhNhan td:nth-child(3) img:hover {
+      transform: scale(1.05);
+    }
+
+    .image-upload-container {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .image-preview {
+      width: 150px;
+      height: 150px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .upload-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .img-thumbnail {
+      padding: 0;
+      border: none;
+    }
+
+    /* Styles for image modal */
+    #imageModal .modal-content {
+      background: transparent;
+      border: none;
+    }
+    
+    #imageModal .modal-header {
+      border: none;
+      padding: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: 1;
+    }
+    
+    #imageModal .modal-body {
+      padding: 0;
+    }
+    
+    #imageModal .btn-close {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background-color: white;
+      opacity: 0.8;
+      border-radius: 50%;
+      padding: 8px;
+    }
+    
+    #imageModal .btn-close:hover {
+      opacity: 1;
+    }
+    
+    #enlargedImage {
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 
@@ -413,6 +546,7 @@
               <tr>
                 <th style="display: none"></th>
                 <th class="m-data-left" style="width: 50px">STT</th>
+                <th class="m-data-left" style="width: 100px">Hình ảnh</th>
                 <th class="m-data-left">Họ tên</th>
                 <th class="m-data-left" style="width: 120px">Giới tính</th>
                 <th class="m-data-left" style="width: 120px">Ngày sinh</th>
@@ -426,6 +560,19 @@
               <tr>
                 <td style="display: none">1</td>
                 <td>1</td>
+                <td>
+                  <div class="image-upload-container">
+                    <div class="image-preview">
+                      <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                    </div>
+                    <div class="upload-controls">
+                      <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                      <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                        <i class="fas fa-upload"></i> Chọn ảnh
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td>Nguyễn Văn A</td>
                 <td>Nam</td>
                 <td>15/05/1990</td>
@@ -433,6 +580,9 @@
                 <td>123 Đường ABC, Q.1</td>
                 <td>
                   <div class="action-buttons">
+                    <button class="btn btn-sm btn-info m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-patient-detail">
+                      <i class="fas fa-eye"></i>
+                    </button>
                     <button class="btn btn-sm btn-primary">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -445,6 +595,19 @@
               <tr>
                 <td style="display: none">2</td>
                 <td>2</td>
+                <td>
+                  <div class="image-upload-container">
+                    <div class="image-preview">
+                      <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                    </div>
+                    <div class="upload-controls">
+                      <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                      <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                        <i class="fas fa-upload"></i> Chọn ảnh
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td>Trần Thị B</td>
                 <td>Nữ</td>
                 <td>20/08/1985</td>
@@ -464,6 +627,19 @@
               <tr>
                 <td style="display: none">3</td>
                 <td>3</td>
+                <td>
+                  <div class="image-upload-container">
+                    <div class="image-preview">
+                      <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                    </div>
+                    <div class="upload-controls">
+                      <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                      <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                        <i class="fas fa-upload"></i> Chọn ảnh
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td>Lê Văn C</td>
                 <td>Nam</td>
                 <td>10/11/1992</td>
@@ -471,6 +647,9 @@
                 <td>789 Đường DEF, Q.3</td>
                 <td>
                   <div class="action-buttons">
+                    <button class="btn btn-sm btn-info m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-patient-detail">
+                      <i class="fas fa-eye"></i>
+                    </button>
                     <button class="btn btn-sm btn-primary">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -483,6 +662,19 @@
               <tr>
                 <td style="display: none">4</td>
                 <td>4</td>
+                <td>
+                  <div class="image-upload-container">
+                    <div class="image-preview">
+                      <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                    </div>
+                    <div class="upload-controls">
+                      <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                      <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                        <i class="fas fa-upload"></i> Chọn ảnh
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td>Phạm Thị D</td>
                 <td>Nữ</td>
                 <td>05/03/1988</td>
@@ -490,6 +682,9 @@
                 <td>101 Đường GHI, Q.4</td>
                 <td>
                   <div class="action-buttons">
+                    <button class="btn btn-sm btn-info m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-patient-detail">
+                      <i class="fas fa-eye"></i>
+                    </button>
                     <button class="btn btn-sm btn-primary">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -502,6 +697,19 @@
               <tr>
                 <td style="display: none">5</td>
                 <td>5</td>
+                <td>
+                  <div class="image-upload-container">
+                    <div class="image-preview">
+                      <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                    </div>
+                    <div class="upload-controls">
+                      <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                      <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                        <i class="fas fa-upload"></i> Chọn ảnh
+                      </button>
+                    </div>
+                  </div>
+                </td>
                 <td>Hoàng Văn E</td>
                 <td>Nam</td>
                 <td>25/12/1995</td>
@@ -509,6 +717,9 @@
                 <td>202 Đường JKL, Q.5</td>
                 <td>
                   <div class="action-buttons">
+                    <button class="btn btn-sm btn-info m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-patient-detail">
+                      <i class="fas fa-eye"></i>
+                    </button>
                     <button class="btn btn-sm btn-primary">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -545,6 +756,23 @@
               <!-- Modal Body -->
               <div class="modal-body">
                 <form id="addPatientForm">
+                  <div class="row">
+                    <!-- Ảnh đại diện -->
+                    <div class="col-md-12 mb-3">
+                      <label class="form-label">Ảnh đại diện</label>
+                      <div class="image-upload-container">
+                        <div class="image-preview">
+                          <img id="preview-image-add" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                        </div>
+                        <div class="upload-controls">
+                          <input type="file" id="image-upload-add" accept="image/*" class="form-control" style="display: none;">
+                          <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-add').click()">
+                            <i class="fas fa-upload"></i> Chọn ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div class="row">
                     <!-- Họ tên -->
                     <div class="col-md-12 mb-3">
@@ -611,6 +839,21 @@
               <!-- Modal body -->
               <div class="modal-body">
                 <div class="row g-3">
+                  <!-- Ảnh đại diện -->
+                  <div class="col-md-12 mb-3">
+                    <label class="form-label">Ảnh đại diện</label>
+                    <div class="image-upload-container">
+                      <div class="image-preview">
+                        <img id="preview-image-edit" src="../assets/img/default-avatar.png" alt="Preview" class="img-thumbnail">
+                      </div>
+                      <div class="upload-controls">
+                        <input type="file" id="image-upload-edit" accept="image/*" class="form-control" style="display: none;">
+                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('image-upload-edit').click()">
+                          <i class="fas fa-upload"></i> Chọn ảnh
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   <!-- Row 1: Họ tên và Số điện thoại -->
                   <div class="col-md-6">
                     <div class="form-group">
@@ -687,13 +930,83 @@
             </div>
           </div>
         </div>
+
+        <!-- DIALOG XEM CHI TIẾT -->
+        <div class="modal fade" id="dialog-patient-detail">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Thông tin chi tiết bệnh nhân</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                <div class="row g-3">
+                  <!-- Row 1: Họ tên và Số điện thoại -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Họ tên</label>
+                      <p id="detail-name" class="form-control-static"></p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Số điện thoại</label>
+                      <p id="detail-phone" class="form-control-static"></p>
+                    </div>
+                  </div>
+
+                  <!-- Row 2: Giới tính và Ngày sinh -->
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Giới tính</label>
+                      <p id="detail-gender" class="form-control-static"></p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Ngày sinh</label>
+                      <p id="detail-dob" class="form-control-static"></p>
+                    </div>
+                  </div>
+
+                  <!-- Row 3: Địa chỉ -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="form-label">Địa chỉ</label>
+                      <p id="detail-address" class="form-control-static"></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal footer -->
+              <div class="modal-footer" style="background-color: #f8f9fa;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <footer class="footer text-center text-muted">
         Designed and Developed by <b class="text-primary">Nhóm 7</b>
       </footer>
-      <!-- ============================================================== -->
-      <!-- End footer -->
-      <!-- ============================================================== -->
+
+      <!-- Modal hiển thị ảnh phóng to -->
+      <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+              <img id="enlargedImage" src="" alt="Enlarged Image" style="max-width: 100%; max-height: 80vh;">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- ============================================================== -->
     <!-- End Page wrapper  -->

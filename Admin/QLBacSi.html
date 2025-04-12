@@ -212,6 +212,97 @@
         justify-content: flex-end;
         gap: 5px;
       }
+
+      /* Thêm CSS cho cột ảnh */
+      #tblBacSi td:nth-child(3) {
+        text-align: center;
+        padding: 5px;
+      }
+
+      #tblBacSi td:nth-child(3) .image-preview {
+        margin: 0 auto;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      #tblBacSi td:nth-child(3) img {
+        display: block;
+        transition: transform 0.3s ease;
+      }
+
+      #tblBacSi td:nth-child(3) img:hover {
+        transform: scale(1.05);
+      }
+
+      /* CSS cho modal ảnh */
+      #imageModal .modal-content {
+        background: transparent;
+        border: none;
+      }
+      
+      #imageModal .modal-header {
+        border: none;
+        padding: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+      }
+      
+      #imageModal .modal-body {
+        padding: 0;
+      }
+      
+      #imageModal .btn-close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        background-color: white;
+        opacity: 0.8;
+        border-radius: 50%;
+        padding: 8px;
+      }
+      
+      #imageModal .btn-close:hover {
+        opacity: 1;
+      }
+      
+      #enlargedImage {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+
+      .image-upload-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .image-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .upload-controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .upload-controls button {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
 
@@ -572,7 +663,7 @@
                   </th> -->
                   <th style="display: none"></th>
                   <th class="text-center" style="width: 100px">STT</th>
-                  <!-- <th class="m-data-left" style="width: 150px">Mã bác sĩ</th> -->
+                  <th class="m-data-left" style="width: 100px">Hình ảnh</th>
                   <th class="m-data-left">Họ và tên</th>
                   <th class="m-data-left">Ngày sinh</th>
                   <th class="m-data-left">Giới tính</th>
@@ -614,6 +705,20 @@
                 <!-- Modal body -->
                 <div class="modal-body">
                   <div class="row-item d-flex">
+                    <div class="input-item input-item-center">
+                      <div class="title-input">Hình ảnh</div>
+                      <div class="image-upload-container">
+                        <div class="image-preview">
+                          <img id="preview-add" src="http://localhost:8080/uploads/no-img.jpg" alt="Preview" style="width: 100px; height: 100px; object-fit: cover;">
+                        </div>
+                        <div class="upload-controls">
+                          <input type="file" id="image-upload-add" accept="image/*" style="display: none;">
+                          <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('image-upload-add').click()">
+                            <i class="fas fa-upload"></i> Chọn ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                     <div class="input-item input-item-center">
                       <div class="title-input">Họ tên</div>
                       <input id="add-tenbs" type="text" class="m-input" oninput="kiemTraTen()"/>
@@ -707,7 +812,20 @@
                 <!-- Modal body -->
                 <div class="modal-body">
                   <div class="row-item d-flex">
-                    
+                    <div class="input-item input-item-center">
+                      <div class="title-input">Hình ảnh</div>
+                      <div class="image-upload-container">
+                        <div class="image-preview">
+                          <img id="preview-edit" src="http://localhost:8080/uploads/no-img.jpg" alt="Preview" style="width: 100px; height: 100px; object-fit: cover;">
+                        </div>
+                        <div class="upload-controls">
+                          <input type="file" id="image-upload-edit" accept="image/*" style="display: none;">
+                          <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('image-upload-edit').click()">
+                            <i class="fas fa-upload"></i> Chọn ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                     <div class="input-item input-item">
                       <div class="title-input">Họ tên</div>
                       <input id="edit-tenbs" type="text" class="m-input" oninput="kiemTraTen()"/>
@@ -869,5 +987,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <!-- <script src="../assets/js/pages/dashboards/dashboard1.min.js"></script> -->
+
+    <!-- Thêm modal hiển thị ảnh phóng to -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img id="enlargedImage" src="" alt="Enlarged Image" style="max-width: 100%; max-height: 80vh;">
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

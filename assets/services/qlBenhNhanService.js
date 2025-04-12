@@ -9,6 +9,30 @@ $(document).ready(function () {
     refreshUI();
     getData();
     
+    // Xử lý upload ảnh cho modal thêm
+    $("#image-upload-add").change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $("#preview-image-add").attr("src", e.target.result);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Xử lý upload ảnh cho modal sửa
+    $("#image-upload-edit").change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $("#preview-image-edit").attr("src", e.target.result);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
     // Xử lý tìm kiếm
     const searchInput = document.querySelector(".m-input-search");
     searchInput.addEventListener("input", function () {
@@ -67,6 +91,9 @@ $(document).ready(function () {
         // Gắn sự kiện cho nút Thêm
         $("#btnAdd").click(function () {
             const genderValue = $("#gender-add").val();
+            const imageFile = $("#image-upload-add")[0].files[0];
+            
+            // Tạo đối tượng bệnh nhân mới
             const newPatient = {
                 fullName: $("#hoten-add").val(),
                 phone: $("#sdt-add").val() || null,
@@ -74,25 +101,55 @@ $(document).ready(function () {
                 dateOfBirth: $("#ngaysinh-add").val() ? $("#ngaysinh-add").val() : null,
                 address: $("#diachi-add").val() || null
             };
-            console.log("Dữ liệu thêm:", newPatient);
 
-            // Gửi yêu cầu add tới API
-            axiosJWT
-                .post(`/api/patients`, newPatient)
-                .then(function (response) {
-                    console.log("Thêm thành công:", response.data);
-                    getData(); // Tải lại dữ liệu sau khi cập nhật
-                    refreshUI();
-                })
-                .catch(function (error) {
-                    showErrorPopup();
-                    console.error("Lỗi khi thêm:", error);
-                });
+            // Nếu có ảnh, upload ảnh trước
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+
+                axiosJWT
+                    .post('/api/upload/image', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(function (response) {
+                        // Thêm đường dẫn ảnh vào đối tượng bệnh nhân
+                        newPatient.image = response.data;
+                        // Gửi request thêm bệnh nhân
+                        return axiosJWT.post(`/api/patients`, newPatient);
+                    })
+                    .then(function (response) {
+                        console.log("Thêm thành công:", response.data);
+                        getData();
+                        refreshUI();
+                    })
+                    .catch(function (error) {
+                        showErrorPopup();
+                        console.error("Lỗi khi thêm:", error);
+                    });
+            } else {
+                // Nếu không có ảnh, gửi request thêm bệnh nhân ngay
+                axiosJWT
+                    .post(`/api/patients`, newPatient)
+                    .then(function (response) {
+                        console.log("Thêm thành công:", response.data);
+                        getData();
+                        refreshUI();
+                    })
+                    .catch(function (error) {
+                        showErrorPopup();
+                        console.error("Lỗi khi thêm:", error);
+                    });
+            }
         });
 
         // Gắn sự kiện cho nút Sửa
         $("#btnEdit").click(function () {
-            const genderValue =$("#gender-edit").val();
+            const genderValue = $("#gender-edit").val();
+            const imageFile = $("#image-upload-edit")[0].files[0];
+            
+            // Tạo đối tượng bệnh nhân cập nhật
             const updatedPatient = {
                 fullName: $("#hoten").val(),
                 email: $("#email").val(),
@@ -102,21 +159,50 @@ $(document).ready(function () {
                 address: $("#diachi").val() || null
             };
 
-            console.log("Dữ liệu cập nhật:", updatedPatient);
+            // Nếu có ảnh mới, upload ảnh trước
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
 
-            // Gửi yêu cầu cập nhật tới API
-            axiosJWT
-                .put(`/api/patients/${bnID}`, updatedPatient)
-                .then(function (response) {
-                    console.log("Cập nhật thành công:", response.data);
-                    getData();
-                    refreshUI();
-                    showSuccessPopup();
-                })
-                .catch(function (error) {
-                    showErrorPopup();
-                    console.error("Lỗi khi cập nhật:", error);
-                });
+                axiosJWT
+                    .post('/api/upload/image', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    .then(function (response) {
+                        // Thêm đường dẫn ảnh vào đối tượng bệnh nhân
+                        updatedPatient.image = response.data;
+                        console.log(response.data)
+                        console.log(updatedPatient)
+                        // Gửi request cập nhật bệnh nhân
+                        return axiosJWT.put(`/api/patients/${bnID}`, updatedPatient);
+                    })
+                    .then(function (response) {
+                        console.log("Cập nhật thành công:", response.data);
+                        getData();
+                        refreshUI();
+                        showSuccessPopup();
+                    })
+                    .catch(function (error) {
+                        showErrorPopup();
+                        console.error("Lỗi khi cập nhật:", error);
+                    });
+            } else {
+                // Nếu không có ảnh mới, gửi request cập nhật ngay
+                axiosJWT
+                    .put(`/api/patients/${bnID}`, updatedPatient)
+                    .then(function (response) {
+                        console.log("Cập nhật thành công:", response.data);
+                        getData();
+                        refreshUI();
+                        showSuccessPopup();
+                    })
+                    .catch(function (error) {
+                        showErrorPopup();
+                        console.error("Lỗi khi cập nhật:", error);
+                    });
+            }
         });
 
         //Mở modal xác nhận xóa
@@ -218,7 +304,7 @@ function displayData(page) {
     const dataToDisplay = window.filteredData.length > 0 ? window.filteredData : window.dsBN;
 
     if (!dataToDisplay || dataToDisplay.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Không có dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center">Không có dữ liệu</td></tr>';
         return;
     }
 
@@ -231,25 +317,42 @@ function displayData(page) {
         const row = document.createElement("tr");
         row.setAttribute("bn-id", item.patientId);
 
+        // Tạo URL ảnh từ API hoặc sử dụng ảnh mặc định
+        const imageUrl = item.image ? `http://localhost:8080${item.image}` : 'http://localhost:8080/uploads/no-img.jpg';
+
         row.innerHTML = `
             <td style="display: none">${item.patientId}</td>
             <td>${i + 1}</td>
+            <td>
+                <div class="image-preview" style="width: 50px; height: 50px; cursor: pointer;">
+                    <img src="${imageUrl}" alt="Patient Image" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </td>
             <td>${item.fullName}</td>
             <td>${item.gender}</td>
             <td>${formatDate(item.dateOfBirth) || 'Không có'}</td>
             <td>${item.phone || 'Không có'}</td>
             <td>${item.address || 'Không có'}</td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn btn-sm btn-primary m-edit" data-bs-toggle="modal" data-bs-target="#edit-patient" data-id="${item.patientId}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger m-delete" data-bs-toggle="modal" data-bs-target="#confirm-delete"">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <div class="m-table-tool">
+                    <div class="m-edit m-tool-icon" data-bs-toggle="modal" data-bs-target="#edit-patient" data-id="${item.patientId}">
+                      <i class="fas fa-edit text-primary"></i>
+                    </div>
+                    <div class="m-delete m-tool-icon" data-bs-toggle="modal" data-bs-target="#confirm-delete">
+                      <i class="fas fa-trash-alt text-danger"></i>
+                    </div>
+                  </div>
             </td>
         `;
+
+        // Thêm sự kiện click cho ảnh
+        const imageElement = row.querySelector('.image-preview img');
+        imageElement.addEventListener('click', function() {
+            const enlargedImage = document.getElementById('enlargedImage');
+            enlargedImage.src = this.src;
+            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            imageModal.show();
+        });
 
         tbody.appendChild(row);
     }
@@ -372,19 +475,19 @@ function fillEditModal(benhNhan) {
     const genderValue = benhNhan.gender === "Nam" ? 'Nam' : benhNhan.gender === "Nữ" ? 'Nữ' : 'Khác';
     $("#gender-edit").val(genderValue);
 
-    // // Gán ngày sinh
-    // const formattedDate = benhNhan.ngaySinh
-    //     ? new Date(benhNhan.ngaySinh).toISOString().split("T")[0]
-    //     : "";
-    // $("#ngaysinh").val(formattedDate);
+    // Gán ngày sinh
     const formattedDate = benhNhan.dateOfBirth
-        ? new Date(benhNhan.dateOfBirth).toLocaleDateString('en-CA') // Định dạng YYYY-MM-DD theo múi giờ cục bộ
+        ? new Date(benhNhan.dateOfBirth).toLocaleDateString('en-CA')
         : "";
     $("#ngaysinh").val(formattedDate);
 
     // Gán địa chỉ
     $("#diachi").val(benhNhan.address || "");
 
-    // Gán tiền sử bệnh lý
-    $("#tiensubenhly").val(benhNhan.tienSuBenhLy || "");
+    // Gán ảnh đại diện nếu có
+    if (benhNhan.imageUrl) {
+        $("#preview-image-edit").attr("src", benhNhan.imageUrl);
+    } else {
+        $("#preview-image-edit").attr("src", "../assets/img/default-avatar.png");
+    }
 }

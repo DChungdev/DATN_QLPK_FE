@@ -45,7 +45,10 @@ $(document).ready(function () {
   // Gắn sự kiện cho nút Thêm
   $("#btnAdd").click(function () {
     const bangCapValue = parseInt($("#add-bangCap").val());
-    const khoaIdValue = $("#add-khoa").val(); // Lấy ID khoa từ combobox
+    const khoaIdValue = $("#add-khoa").val();
+    const imageFile = $("#image-upload-add")[0].files[0];
+    
+    // Tạo đối tượng bác sĩ mới
     const newDoctor = {
       fullName: $("#add-tenbs").val(),
       phone: $("#add-sdt").val() || null,
@@ -53,28 +56,58 @@ $(document).ready(function () {
       address: $("#add-diaChi").val() || null,
       gender: $("#add-gioiTinh").val() || null,
       dateOfBirth: $("#add-ngaysinh").val() || null,
-      departmentId: khoaIdValue || null,
+      departmentId: khoaIdValue || null
     };
-    console.log("Dữ liệu thêm:", newDoctor);
 
-    // Gửi yêu cầu add tới API
-    axiosJWT
-      .post(`/api/doctors`, newDoctor)
-      .then(function (response) {
-        console.log("Thêm thành công:", response.data);
-        getData(); // Tải lại dữ liệu sau khi cập nhật
-        refreshUI();
-      })
-      .catch(function (error) {
-        showErrorPopup();
-        console.error("Lỗi khi thêm:", error);
-      });
+    // Nếu có ảnh, upload ảnh trước
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+
+      axiosJWT
+        .post('/api/upload/image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(function (response) {
+          // Thêm đường dẫn ảnh vào đối tượng bác sĩ
+          newDoctor.image = response.data;
+          // Gửi request thêm bác sĩ
+          return axiosJWT.post(`/api/doctors`, newDoctor);
+        })
+        .then(function (response) {
+          console.log("Thêm thành công:", response.data);
+          getData();
+          refreshUI();
+        })
+        .catch(function (error) {
+          showErrorPopup();
+          console.error("Lỗi khi thêm:", error);
+        });
+    } else {
+      // Nếu không có ảnh, gửi request thêm bác sĩ ngay
+      axiosJWT
+        .post(`/api/doctors`, newDoctor)
+        .then(function (response) {
+          console.log("Thêm thành công:", response.data);
+          getData();
+          refreshUI();
+        })
+        .catch(function (error) {
+          showErrorPopup();
+          console.error("Lỗi khi thêm:", error);
+        });
+    }
   });
 
   // Gắn sự kiện cho nút Sửa
   $("#btnEdit").click(function () {
     const bangCapValue = parseInt($("#edit-bangCap").val());
-    const khoaIdValue = $("#edit-khoa").val(); // Lấy ID khoa từ combobox
+    const khoaIdValue = $("#edit-khoa").val();
+    const imageFile = $("#image-upload-edit")[0].files[0];
+    
+    // Tạo đối tượng bác sĩ cập nhật
     const updatedDoctor = {
       fullName: $("#edit-tenbs").val(),
       phone: $("#edit-sdt").val() || null,
@@ -82,23 +115,51 @@ $(document).ready(function () {
       address: $("#edit-diaChi").val() || null,
       gender: $("#edit-gioiTinh").val() || null,
       dateOfBirth: $("#edit-ngaysinh").val() || null,
-      departmentId: khoaIdValue || null,
+      departmentId: khoaIdValue || null
     };
 
-    console.log("Dữ liệu cập nhật:", updatedDoctor);
+    // Nếu có ảnh mới, upload ảnh trước
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('file', imageFile);
 
-    // Gửi yêu cầu cập nhật tới API
-    axiosJWT
-      .put(`/api/doctors/${bsID}`, updatedDoctor)
-      .then(function (response) {
-        console.log("Cập nhật thành công:", response.data);
-        getData(); // Tải lại dữ liệu sau khi cập nhật
-        showSuccessPopup();
-      })
-      .catch(function (error) {
-        showErrorPopup();
-        console.error("Lỗi khi cập nhật:", error);
-      });
+      axiosJWT
+        .post('/api/upload/image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(function (response) {
+          // Thêm đường dẫn ảnh vào đối tượng bác sĩ
+          updatedDoctor.image = response.data;
+          // Gửi request cập nhật bác sĩ
+          return axiosJWT.put(`/api/doctors/${bsID}`, updatedDoctor);
+        })
+        .then(function (response) {
+          console.log("Cập nhật thành công:", response.data);
+          getData();
+          refreshUI();
+          showSuccessPopup();
+        })
+        .catch(function (error) {
+          showErrorPopup();
+          console.error("Lỗi khi cập nhật:", error);
+        });
+    } else {
+      // Nếu không có ảnh mới, gửi request cập nhật ngay
+      axiosJWT
+        .put(`/api/doctors/${bsID}`, updatedDoctor)
+        .then(function (response) {
+          console.log("Cập nhật thành công:", response.data);
+          getData();
+          refreshUI();
+          showSuccessPopup();
+        })
+        .catch(function (error) {
+          showErrorPopup();
+          console.error("Lỗi khi cập nhật:", error);
+        });
+    }
   });
 
   //Mở modal xác nhận xóa
@@ -152,6 +213,46 @@ $(document).ready(function () {
   // Sự kiện khi click nút lọc
   $("#btnFilter").click(function () {
     filterByDate();
+  });
+
+  // Thêm sự kiện cho input file trong modal thêm
+  $("#image-upload-add").change(function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        $("#preview-add").attr("src", e.target.result);
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Thêm sự kiện cho input file trong modal sửa
+  $("#image-upload-edit").change(function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        $("#preview-edit").attr("src", e.target.result);
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Thêm sự kiện click cho ảnh preview trong modal thêm
+  $("#preview-add").click(function() {
+    const enlargedImage = document.getElementById('enlargedImage');
+    enlargedImage.src = this.src;
+    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+    imageModal.show();
+  });
+
+  // Thêm sự kiện click cho ảnh preview trong modal sửa
+  $("#preview-edit").click(function() {
+    const enlargedImage = document.getElementById('enlargedImage');
+    enlargedImage.src = this.src;
+    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+    imageModal.show();
   });
 });
 
@@ -249,14 +350,22 @@ function displayData(page) {
 
   // Lặp qua danh sách bác sĩ đã phân trang và xây dựng các hàng bảng
   paginatedData.forEach((item, index) => {
+    // Tạo URL ảnh từ API hoặc sử dụng ảnh mặc định
+    const imageUrl = item.image ? `http://localhost:8080${item.image}` : 'http://localhost:8080/uploads/no-img.jpg';
+
     const row = `
       <tr bs-id="${item.doctorId}">
         <td style="display: none"></td>
         <td class="text-center">${startIndex + index + 1}</td>
+        <td>
+          <div class="image-preview" style="width: 50px; height: 50px; cursor: pointer;">
+            <img src="${imageUrl}" alt="Doctor Image" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        </td>
         <td class="m-data-left">${item.fullName || "Chưa có"}</td>
         <td class="m-data-left">${formatDate(item.dateOfBirth) || "Chưa có"}</td>
         <td class="m-data-left">${item.gender || "Chưa có"}</td>
-        <td class="m-data-left">${item.degree || "Chưa có"}</td>
+        <td class="m-data-left">${getBangCapText(item.degree) || "Chưa có"}</td>
         <td class="m-data-left">${item.departmentId || "Chưa có"}</td>
         <td class="m-data-left">${item.phone || "Chưa có"}</td>
         <td class="m-data-left">${item.address || "Chưa có"}</td>
@@ -273,6 +382,17 @@ function displayData(page) {
       </tr>
     `;
     tableBody.innerHTML += row;
+  });
+
+  // Thêm sự kiện click cho tất cả ảnh sau khi đã render xong bảng
+  const imageElements = tableBody.querySelectorAll('.image-preview img');
+  imageElements.forEach(img => {
+    img.addEventListener('click', function() {
+      const enlargedImage = document.getElementById('enlargedImage');
+      enlargedImage.src = this.src;
+      const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+      imageModal.show();
+    });
   });
 
   currentPage = page;
@@ -374,24 +494,23 @@ function getAllDepartment(selectElement) {
 // Hàm điền thông tin vào modal
 function fillEditModal(bacSi) {
   // Gán dữ liệu vào các trường input của modal
-  $("#edit-mabs").val(bacSi.doctorId); // Mã bệnh nhân
-  $("#edit-tenbs").val(bacSi.fullName); // Họ tên
+  $("#edit-mabs").val(bacSi.doctorId);
+  $("#edit-tenbs").val(bacSi.fullName);
   const formattedDate = bacSi.dateOfBirth
-        ? new Date(bacSi.dateOfBirth).toLocaleDateString('en-CA') // Định dạng YYYY-MM-DD theo múi giờ cục bộ
+        ? new Date(bacSi.dateOfBirth).toLocaleDateString('en-CA')
         : "";
   $("#edit-ngaysinh").val(formattedDate);
-  $("#edit-sdt").val(bacSi.phone); // Số điện thoại
-  // $("#edit-email").val(bacSi.email || ""); // Email
-  // Gán bằng cấp
+  $("#edit-sdt").val(bacSi.phone);
   const bangCapValue = bacSi.degree;
   $("#edit-bangCap").val(bangCapValue);
-  $("#edit-namKinhNghiem").val(bacSi.soNamKinhNghiem); // Số năm kinh nghiệm
-  // Gán địa chỉ
+  $("#edit-namKinhNghiem").val(bacSi.soNamKinhNghiem);
   $("#edit-diaChi").val(bacSi.address || "");
-  // $("#edit-gioLamViec").val(bacSi.gioLamViec); // Giờ làm việc
-  // Gán bằng cấp
   const khoaIdValue = bacSi.departmentId;
   $("#edit-khoa").val(khoaIdValue);
+  
+  // Hiển thị ảnh
+  const imageUrl = bacSi.image ? `http://localhost:8080${bacSi.image}` : 'http://localhost:8080/uploads/no-img.jpg';
+  $("#preview-edit").attr("src", imageUrl);
 }
 
 function formatDate(dateString) {
