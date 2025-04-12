@@ -1,10 +1,17 @@
 var dsBS;
 var bsID = "";
 var dsKhoa;
+var currentPage = 1;
+const recordsPerPage = 4;
+var filteredData = []; // Thêm biến để lưu dữ liệu đã lọc
+
 $(document).ready(function () {
   getData();
+  refreshUI();
+  
   $("#refresh-data").click(function () {
     getData(); // Gọi hàm getData
+    refreshUI();
   });
   const departmentSelectAdd = document.querySelector(
     "#modalThemBacSi #add-khoa"
@@ -18,9 +25,10 @@ $(document).ready(function () {
   // Gắn sự kiện cho nút hiển thị modal sửa
   $(document).on("click", ".m-edit", function () {
     // const benhNhanId = $(this).data("id"); // Lấy id từ thuộc tính data-id
-    const bacSiId = $(this).closest("tr").attr("bs-id");
-    bsID = bacSiId;
-    const bacSi = dsBS.find((bs) => bs.bacSiId === bacSiId); // Tìm bệnh nhân trong danh sách
+    const doctorId = $(this).closest("tr").attr("bs-id");
+    bsID = doctorId;
+    console.log(bsID);
+    const bacSi = dsBS.find((bs) => bs.doctorId == doctorId); // Tìm bệnh nhân trong danh sách
 
     if (bacSi) {
       fillEditModal(bacSi); // Hiển thị thông tin lên modal
@@ -29,34 +37,33 @@ $(document).ready(function () {
     }
   });
 
-  // Gắn sự kiện cho nút hiển thị modal Thêm
-  $("#btnOpenModalAdd").click(function () {
-    let maBSNext = getMaxBacSiCode(dsBS);
-    $("#add-mabs").val(maBSNext);
-  });
+  // // Gắn sự kiện cho nút hiển thị modal Thêm
+  // $("#btnOpenModalAdd").click(function () {
+  //   let maBSNext = getMaxBacSiCode(dsBS);
+  //   $("#add-mabs").val(maBSNext);
+  // });
   // Gắn sự kiện cho nút Thêm
   $("#btnAdd").click(function () {
     const bangCapValue = parseInt($("#add-bangCap").val());
     const khoaIdValue = $("#add-khoa").val(); // Lấy ID khoa từ combobox
     const newDoctor = {
-      maBacSi: $("#add-mabs").val(),
-      hoTen: $("#add-tenbs").val(),
-      email: $("#add-email").val() || null,
-      soDienThoai: $("#add-sdt").val() || null,
-      bangCap: bangCapValue,
-      diaChi: $("#add-diaChi").val() || null,
-      soNamKinhNghiem: $("#add-namKinhNghiem").val() || null,
-      gioLamViec: $("#add-gioLamViec").val() || null,
-      khoaId: khoaIdValue || null,
+      fullName: $("#add-tenbs").val(),
+      phone: $("#add-sdt").val() || null,
+      degree: bangCapValue,
+      address: $("#add-diaChi").val() || null,
+      gender: $("#add-gioiTinh").val() || null,
+      dateOfBirth: $("#add-ngaysinh").val() || null,
+      departmentId: khoaIdValue || null,
     };
     console.log("Dữ liệu thêm:", newDoctor);
 
     // Gửi yêu cầu add tới API
     axiosJWT
-      .post(`/api/Doctors`, newDoctor)
+      .post(`/api/doctors`, newDoctor)
       .then(function (response) {
         console.log("Thêm thành công:", response.data);
         getData(); // Tải lại dữ liệu sau khi cập nhật
+        refreshUI();
       })
       .catch(function (error) {
         showErrorPopup();
@@ -69,23 +76,20 @@ $(document).ready(function () {
     const bangCapValue = parseInt($("#edit-bangCap").val());
     const khoaIdValue = $("#edit-khoa").val(); // Lấy ID khoa từ combobox
     const updatedDoctor = {
-      bacSiId: bsID,
-      maBacSi: $("#edit-mabs").val(),
-      hoTen: $("#edit-tenbs").val(),
-      email: $("#edit-email").val(),
-      soDienThoai: $("#edit-sdt").val() || null,
-      bangCap: bangCapValue,
-      diaChi: $("#edit-diaChi").val() || null,
-      soNamKinhNghiem: $("#edit-namKinhNghiem").val() || null,
-      gioLamViec: $("#edit-gioLamViec").val() || null,
-      khoaId: khoaIdValue || null,
+      fullName: $("#edit-tenbs").val(),
+      phone: $("#edit-sdt").val() || null,
+      degree: bangCapValue,
+      address: $("#edit-diaChi").val() || null,
+      gender: $("#edit-gioiTinh").val() || null,
+      dateOfBirth: $("#edit-ngaysinh").val() || null,
+      departmentId: khoaIdValue || null,
     };
 
     console.log("Dữ liệu cập nhật:", updatedDoctor);
 
     // Gửi yêu cầu cập nhật tới API
     axiosJWT
-      .put(`/api/Doctors/${updatedDoctor.bacSiId}`, updatedDoctor)
+      .put(`/api/doctors/${bsID}`, updatedDoctor)
       .then(function (response) {
         console.log("Cập nhật thành công:", response.data);
         getData(); // Tải lại dữ liệu sau khi cập nhật
@@ -99,18 +103,19 @@ $(document).ready(function () {
 
   //Mở modal xác nhận xóa
   $(document).on("click", ".m-delete", function () {
-    const bacSiId = $(this).closest("tr").attr("bs-id");
-    bsID = bacSiId;
+    const doctorId = $(this).closest("tr").attr("bs-id");
+    bsID = doctorId;
     console.log(bsID);
-    const bacSi = dsBS.find((bs) => bs.bacSiId === bacSiId); // Tìm bệnh nhân trong danh sách
+    const bacSi = dsBS.find((bs) => bs.doctorId === doctorId); // Tìm bệnh nhân trong danh sách
   });
 
   $("#btnDelete").click(function () {
     axiosJWT
-      .delete(`/api/Doctors/${bsID}`)
+      .delete(`/api/doctors/${bsID}`)
       .then(function (response) {
         console.log("Xóa thành công:", response.data);
         getData(); // Tải lại dữ liệu sau khi cập nhật
+        refreshUI();
       })
       .catch(function (error) {
         showErrorPopup();
@@ -120,88 +125,86 @@ $(document).ready(function () {
   // Sự kiện khi nhập vào ô tìm kiếm
   $(".m-input-search").on("keyup", function () {
     var value = $(this).val().toLowerCase();
-    $("#tblBacSi tbody tr").filter(function () {
-      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-    });
-  });
-  //Xử lý sự kiện khi nhấn nút Export
-  $(".m-toolbar-export").click(function () {
-    exportToExcel();
-  });
-   // Thêm sự kiện cho nút lọc
-   $("#btnFilter").click(function() {
-    const startDate = $("#startDate").val();
-    const endDate = $("#endDate").val();
-    if (startDate && endDate) {
-      getAppointmentCounts(dsBS, startDate, endDate);
-    } else {
-      alert("Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc!");
+    if (value === "") {
+      filteredData = [];
+      refreshUI();
+      return;
     }
+
+    filteredData = dsBS.filter(function (item) {
+      return (
+        (item.fullName && item.fullName.toLowerCase().includes(value)) ||
+        (item.phone && item.phone.toLowerCase().includes(value)) ||
+        (item.address && item.address.toLowerCase().includes(value)) ||
+        (item.gender && item.gender.toLowerCase().includes(value))
+
+      );
+    });
+
+    refreshUI();
+  });
+
+  // Sự kiện khi thay đổi ngày
+  $("#startDate, #endDate").on("change", function () {
+    filterByDate();
+  });
+
+  // Sự kiện khi click nút lọc
+  $("#btnFilter").click(function () {
+    filterByDate();
   });
 });
-// Hàm xử lý khi ấn nút xuất file Excel
-function exportToExcel() {
-  // Lấy dữ liệu từ bảng
-  const table = document.querySelector("#tblBacSi");
-  const rows = table.querySelectorAll("tbody tr");
 
-  // Tạo mảng chứa dữ liệu
-  const data = [];
+function filterByDate() {
+  const startDate = $("#startDate").val();
+  const endDate = $("#endDate").val();
 
-  // Lấy tiêu đề cột (tùy chọn)
-  const headers = [];
-  table.querySelectorAll("thead th").forEach((th, index) => {
-    const headerText = th.textContent.trim();
-    // Đảm bảo không thêm ô trống vào
-    if (headerText) {
-      headers.push(headerText);
-    }
-  });
-
-  // Nếu có tiêu đề hợp lệ, thêm vào mảng dữ liệu
-  if (headers.length > 0) {
-    data.push(headers); 
+  if (!startDate && !endDate) {
+    filteredData = [];
+    refreshUI();
+    return;
   }
 
-  // Lặp qua các dòng của bảng để lấy dữ liệu
-  rows.forEach(row => {
-    const rowData = [];
-    row.querySelectorAll("td").forEach(td => {
-      const cellText = td.textContent.trim();
-      // Đảm bảo không thêm ô trống vào
-      rowData.push(cellText);
-    });
-    data.push(rowData); // Thêm dòng dữ liệu vào mảng
+  filteredData = dsBS.filter(function (item) {
+    const itemDate = new Date(item.dateOfBirth);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start && end) {
+      return itemDate >= start && itemDate <= end;
+    } else if (start) {
+      return itemDate >= start;
+    } else if (end) {
+      return itemDate <= end;
+    }
+    return true;
   });
 
-  // Tạo workbook từ dữ liệu
-  const ws = XLSX.utils.aoa_to_sheet(data);
-
-  // Tạo workbook và thêm sheet
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Bác Sĩ");
-
-  // Xuất file Excel
-  XLSX.writeFile(wb, "danh_sach_bac_si.xlsx");
+  refreshUI();
 }
-
-
 
 function getData() {
-  // var userId = localStorage.getItem("userId");
-  // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
   axiosJWT
-    .get(`/api/Doctors`)
+    .get(`/api/doctors`)
     .then(function (response) {
       dsBS = response.data;
-      console.log(dsBS);
-      getAppointmentCounts(dsBS);
-      // display(dsBS);
+      console.log("Dữ liệu bác sĩ từ API:", dsBS); // Debug log
+      if (dsBS && dsBS.length > 0) {
+        refreshUI();
+      } else {
+        console.log("Không có dữ liệu bác sĩ"); // Debug log
+      }
     })
     .catch(function (error) {
-      console.error("Lỗi không tìm được:", error);
+      console.error("Lỗi khi lấy dữ liệu:", error);
     });
 }
+
+function refreshUI() {
+  displayData(currentPage);
+  updatePagination();
+}   
+
 // function getAppointmentCounts(dsBS) {
 //   // Lấy số lượng ca khám của từng bác sĩ
 //   axiosJWT
@@ -222,63 +225,44 @@ function getData() {
 //       console.error("Lỗi không lấy được số lượng ca khám:", error);
 //     });
 // }
-function getAppointmentCounts(dsBS, startDate = null, endDate = null) {
-  let url = `/api/Doctors/countAppointments`;
-  
-  // Nếu có startDate và endDate, thêm vào URL
-  if (startDate && endDate) {
-    url += `?startDate=${startDate}&endDate=${endDate}`;
-  }
-
-  axiosJWT
-    .get(url)
-    .then(function (response) {
-      const appointmentCounts = response.data;
-
-      // Tạo một map để ánh xạ từ bacSiId sang số lượng ca khám
-      const appointmentMap = new Map();
-      appointmentCounts.forEach(item => {
-        appointmentMap.set(item.bacSiId, item.appointmentCount);
-      });
-
-      // Sau khi có số lượng ca khám, gọi hàm display để hiển thị dữ liệu
-      display(dsBS, appointmentMap);
-    })
-    .catch(function (error) {
-      console.error("Lỗi không lấy được số lượng ca khám:", error);
-      showErrorPopup();
-    });
-}
-function display(data, appointmentMap) {
+function displayData(page) {
   const tableBody = document.querySelector("#tblBacSi tbody");
-  tableBody.innerHTML = ""; // Xóa nội dung cũ nếu có
-
-  // Tạo một Map để ánh xạ từ khoaId sang tenKhoa
-  const khoaMap = new Map();
-  if(dsKhoa != null) {
-    dsKhoa.forEach((item) => {
-        khoaMap.set(item.khoaId, item.tenKhoa);
-      });
+  
+  if (!tableBody) {
+    console.error("Không tìm thấy phần tử tbody");
+    return;
   }
-  // Lặp qua danh sách bác sĩ và xây dựng các hàng bảng
-  data.forEach((item, index) => {
-    const tenKhoa = khoaMap.get(item.khoaId) || "Chưa có khoa"; // Lấy tên khoa từ Map
-    const soLuongCaKham = appointmentMap.get(item.bacSiId) || 0; // Lấy số lượng ca khám từ Map
+
+  tableBody.innerHTML = ""; // Xóa nội dung cũ
+
+  const dataToDisplay = filteredData.length > 0 ? filteredData : dsBS;
+
+  if (!dataToDisplay || dataToDisplay.length === 0) {
+    console.log("Không có dữ liệu để hiển thị");
+    return;
+  }
+
+  // Tính toán các chỉ số cho phân trang
+  const startIndex = (page - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const paginatedData = dataToDisplay.slice(startIndex, endIndex);
+
+  // Lặp qua danh sách bác sĩ đã phân trang và xây dựng các hàng bảng
+  paginatedData.forEach((item, index) => {
     const row = `
-      <tr bs-id="${item.bacSiId}">
-        <td class="text-center">${index + 1}</td>
-        <td class="m-data-left">${item.maBacSi}</td>
-        <td class="m-data-left">${item.hoTen}</td>
-        <td class="m-data-left">${item.tenBangCap}</td>
-        <td class="m-data-left">${tenKhoa}</td>
-        <td class="m-data-left">${item.soDienThoai}</td>
-        <td class="m-data-left">${item.email || "Chưa có email"}</td>
-        <td class="m-data-left">${soLuongCaKham}</td>
+      <tr bs-id="${item.doctorId}">
+        <td style="display: none"></td>
+        <td class="text-center">${startIndex + index + 1}</td>
+        <td class="m-data-left">${item.fullName || "Chưa có"}</td>
+        <td class="m-data-left">${formatDate(item.dateOfBirth) || "Chưa có"}</td>
+        <td class="m-data-left">${item.gender || "Chưa có"}</td>
+        <td class="m-data-left">${item.degree || "Chưa có"}</td>
+        <td class="m-data-left">${item.departmentId || "Chưa có"}</td>
+        <td class="m-data-left">${item.phone || "Chưa có"}</td>
+        <td class="m-data-left">${item.address || "Chưa có"}</td>
         <td>
           <div class="m-table-tool">
-            <div class="m-edit m-tool-icon" data-bs-toggle="modal" data-bs-target="#modalSuaBacSi" data-id="${
-              item.bacSiId
-            }">
+            <div class="m-edit m-tool-icon" data-bs-toggle="modal" data-bs-target="#modalSuaBacSi" data-id="${item.doctorId}">
               <i class="fas fa-edit text-primary"></i>
             </div>
             <div class="m-delete m-tool-icon" data-bs-toggle="modal" data-bs-target="#confirm-delete">
@@ -288,20 +272,97 @@ function display(data, appointmentMap) {
         </td>
       </tr>
     `;
-    tableBody.innerHTML += row; // Thêm hàng vào bảng
+    tableBody.innerHTML += row;
   });
+
+  currentPage = page;
+}
+
+function getBangCapText(bangCap) {
+  const bangCapMap = {
+    0: "Giáo sư Y khoa",
+    1: "Phó Giáo sư Y khoa",
+    2: "Tiến sĩ Y khoa",
+    3: "Bác sĩ Chuyên khoa 2",
+    4: "Thạc sĩ Y khoa",
+    5: "Bác sĩ Chuyên khoa 1",
+    6: "Bác sĩ Đa khoa"
+  };
+  return bangCapMap[bangCap] || "Chưa có";
+}
+
+function updatePagination() {
+  let paginationContainer = document.querySelector(".pagination");
+  
+  // Nếu không tìm thấy container, tạo mới
+  if (!paginationContainer) {
+    const container = document.createElement("div");
+    container.className = "pagination-container";
+    container.innerHTML = '<ul class="pagination"></ul>';
+    document.querySelector(".data-table").after(container);
+    paginationContainer = container.querySelector(".pagination");
+  }
+
+  paginationContainer.innerHTML = "";
+
+  const dataToDisplay = filteredData.length > 0 ? filteredData : dsBS;
+
+  if (!dataToDisplay || dataToDisplay.length === 0) {
+    return;
+  }
+
+  const totalPages = Math.ceil(dataToDisplay.length / recordsPerPage);
+
+  // Nút Trước
+  const prevLi = document.createElement("li");
+  prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+  prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1" ${currentPage === 1 ? 'aria-disabled="true"' : ''}>Trước</a>`;
+  prevLi.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (currentPage > 1) {
+      currentPage--;
+      refreshUI();
+    }
+  });
+  paginationContainer.appendChild(prevLi);
+
+  // Các nút số trang
+  for (let i = 1; i <= totalPages; i++) {
+    const pageLi = document.createElement("li");
+    pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+    pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+    pageLi.addEventListener("click", function (e) {
+      e.preventDefault();
+      currentPage = i;
+      refreshUI();
+    });
+    paginationContainer.appendChild(pageLi);
+  }
+
+  // Nút Sau
+  const nextLi = document.createElement("li");
+  nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+  nextLi.innerHTML = `<a class="page-link" href="#" ${currentPage === totalPages ? 'aria-disabled="true"' : ''}>Sau</a>`;
+  nextLi.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (currentPage < totalPages) {
+      currentPage++;
+      refreshUI();
+    }
+  });
+  paginationContainer.appendChild(nextLi);
 }
 
 // Lấy toàn bộ khoa
 function getAllDepartment(selectElement) {
   axiosJWT
-    .get(`/api/v1/Departments`)
+    .get(`/api/departments`)
     .then(function (response) {
       dsKhoa = response.data;
       dsKhoa.forEach((item) => {
         const option = document.createElement("option");
-        option.value = item.khoaId;
-        option.textContent = item.tenKhoa;
+        option.value = item.departmentId;
+        option.textContent = item.name;
         selectElement.appendChild(option);
       });
     })
@@ -313,30 +374,39 @@ function getAllDepartment(selectElement) {
 // Hàm điền thông tin vào modal
 function fillEditModal(bacSi) {
   // Gán dữ liệu vào các trường input của modal
-  $("#edit-mabs").val(bacSi.maBacSi); // Mã bệnh nhân
-  $("#edit-tenbs").val(bacSi.hoTen); // Họ tên
-  $("#edit-sdt").val(bacSi.soDienThoai); // Số điện thoại
-  $("#edit-email").val(bacSi.email || ""); // Email
+  $("#edit-mabs").val(bacSi.doctorId); // Mã bệnh nhân
+  $("#edit-tenbs").val(bacSi.fullName); // Họ tên
+  const formattedDate = bacSi.dateOfBirth
+        ? new Date(bacSi.dateOfBirth).toLocaleDateString('en-CA') // Định dạng YYYY-MM-DD theo múi giờ cục bộ
+        : "";
+  $("#edit-ngaysinh").val(formattedDate);
+  $("#edit-sdt").val(bacSi.phone); // Số điện thoại
+  // $("#edit-email").val(bacSi.email || ""); // Email
   // Gán bằng cấp
-  const bangCapValue = bacSi.bangCap;
+  const bangCapValue = bacSi.degree;
   $("#edit-bangCap").val(bangCapValue);
   $("#edit-namKinhNghiem").val(bacSi.soNamKinhNghiem); // Số năm kinh nghiệm
   // Gán địa chỉ
-  $("#edit-diaChi").val(bacSi.diaChi || "");
-  $("#edit-gioLamViec").val(bacSi.gioLamViec); // Giờ làm việc
+  $("#edit-diaChi").val(bacSi.address || "");
+  // $("#edit-gioLamViec").val(bacSi.gioLamViec); // Giờ làm việc
   // Gán bằng cấp
-  const khoaIdValue = bacSi.khoaId;
+  const khoaIdValue = bacSi.departmentId;
   $("#edit-khoa").val(khoaIdValue);
 }
 
 function formatDate(dateString) {
-  if (!dateString) return "Không xác định";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  if (!dateString) return "Chưa có";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.error("Lỗi khi format ngày:", error);
+    return "Chưa có";
+  }
 }
 
 function showErrorPopup() {
@@ -353,18 +423,6 @@ function hideErrorPopup() {
   errorPopup.style.visibility = "hidden";
 }
 
-// Hàm lấy mã bác sĩ lớn nhất
-function getMaxBacSiCode(dsBS) {
-  let maxCode = 0;
-  dsBS.forEach((item) => {
-    const code = parseInt(item.maBacSi.replace("BS", "")); // Loại bỏ 'BS' và chuyển thành số
-    if (code > maxCode) {
-      maxCode = code;
-    }
-  });
-  const nextCode = maxCode + 1;
-  return "BS" + nextCode.toString().padStart(3, "0");
-}
 function showSuccessPopup() {
   // Hiển thị popup
   const popup = document.getElementById("success-popup");

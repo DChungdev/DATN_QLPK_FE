@@ -345,52 +345,36 @@
               <thead class="table-success">
                 <tr>
                   <th class="m-data-center" style="width: 70px">STT</th>
-                  <th class="m-data-right" style="text-align: center">
-                    Họ và tên
-                  </th>
-                  <th
-                    class="m-data-left"
-                    style="width: 200px; text-align: center"
-                  >
-                    Ngày khám
-                  </th>
-                  <th
-                    class="m-data-left"
-                    style="width: 120px; text-align: center"
-                  >
-                    Ca khám
-                  </th>
-                  <th class="m-data-left" style="text-align: center">Bác sĩ</th>
-                  <th class="m-data-left" style="text-align: center">
-                    Trạng thái
-                  </th>
+                  <th class="m-data-left">Mã bệnh nhân</th>
+                  <th class="m-data-left">Mã bác sĩ</th>
+                  <th class="m-data-left">Ngày khám</th>
+                  <th class="m-data-left">Lý do khám</th>
+                  <th class="m-data-left">Phí cơ bản</th>
+                  <th class="m-data-left">Tổng phí</th>
+                  <th class="m-data-left">Trạng thái</th>
+                  <th class="m-data-left">Dịch vụ</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="text-align: center">15</td>
-                  <td>Hoàng Hưng Chung</td>
-                  <td>01/01/2024</td>
-                  <td>08:00</td>
-                  <td>Nguyễn Khắc Cảnh</td>
-                  <td style="text-align: center" ;>
-                    <span class="badge rounded-pill bg-success">Success</span>
+                  <td class="text-center">1</td>
+                  <td>32</td>
+                  <td>8</td>
+                  <td>12/04/2025 09:00</td>
+                  <td>Đau đầu kéo dài</td>
+                  <td>200,000 VNĐ</td>
+                  <td>0 VNĐ</td>
+                  <td>
+                    <span class="badge rounded-pill bg-warning">Chờ xử lý</span>
                   </td>
+                  <td>Chưa có dịch vụ</td>
                   <td>
                     <div class="m-table-tool">
-                      <div
-                        class="m-edit m-tool-icon"
-                        data-bs-toggle="modal"
-                        data-bs-target="#dialog-appointment-edit"
-                      >
+                      <div class="m-edit m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-appointment-edit">
                         <i class="fas fa-edit text-primary"></i>
                       </div>
-                      <div
-                        class="m-delete m-tool-icon"
-                        data-bs-toggle="modal"
-                        data-bs-target="#dialog-confirm-delete"
-                      >
+                      <div class="m-delete m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-confirm-delete">
                         <i class="fas fa-trash-alt text-danger"></i>
                       </div>
                     </div>
@@ -399,6 +383,157 @@
               </tbody>
             </table>
           </div>
+
+          <style>
+            .data-table {
+              background: white;
+              border-radius: 8px 8px 0 0;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              overflow: hidden;
+              margin-top: 20px;
+              margin-bottom: 0;
+              max-height: 390px;
+              overflow-y: auto;
+            }
+
+            #tblAppointment {
+              width: 100%;
+              border-collapse: separate;
+              border-spacing: 0;
+            }
+
+            #tblAppointment thead th {
+              background: #28a745;
+              color: white;
+              font-weight: 600;
+              padding: 8px 12px;
+              text-align: left;
+              border-bottom: 2px solid #ddd;
+              position: sticky;
+              top: 0;
+              z-index: 10;
+            }
+
+            #tblAppointment tbody tr {
+              transition: all 0.3s ease;
+            }
+
+            #tblAppointment tbody tr:hover {
+              background-color: #f5f5f5;
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            #tblAppointment tbody td {
+              padding: 8px 12px;
+              border-bottom: 1px solid #eee;
+              vertical-align: middle;
+              font-size: 0.9rem;
+            }
+
+            #tblAppointment tbody tr:last-child td {
+              border-bottom: none;
+            }
+
+            .m-toolbar-table {
+              background: white;
+              padding: 15px;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              margin-bottom: 20px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            .m-input-search {
+              padding: 8px 15px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              width: 300px;
+              transition: all 0.3s ease;
+            }
+
+            .m-input-search:focus {
+              border-color: #28a745;
+              box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+              outline: none;
+            }
+
+            .m-toolbar-icon {
+              cursor: pointer;
+              padding: 8px;
+              border-radius: 4px;
+              transition: all 0.3s ease;
+            }
+
+            .m-toolbar-icon:hover {
+              background-color: #f5f5f5;
+            }
+
+            .btn-success {
+              background-color: #28a745;
+              border-color: #28a745;
+              padding: 8px 20px;
+              border-radius: 4px;
+              transition: all 0.3s ease;
+            }
+
+            .btn-success:hover {
+              background-color: #218838;
+              border-color: #1e7e34;
+              transform: translateY(-1px);
+            }
+
+            .pagination-container {
+              background: white;
+              border-radius: 0 0 8px 8px;
+              padding: 10px 20px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .pagination {
+              margin-bottom: 0;
+              justify-content: flex-end;
+            }
+            
+            .page-link {
+              color: #28a745;
+              border-color: #dee2e6;
+              transition: all 0.3s ease;
+            }
+            
+            .page-item.active .page-link {
+              background-color: #28a745;
+              border-color: #28a745;
+            }
+            
+            .page-link:hover {
+              color: #218838;
+              background-color: #e9ecef;
+              border-color: #dee2e6;
+            }
+
+            /* Adjust buttons column */
+            #tblAppointment th:last-child, 
+            #tblAppointment td:last-child {
+              width: 90px;
+              text-align: right;
+              padding-right: 5px;
+            }
+            
+            /* Make buttons more compact */
+            .action-buttons {
+              display: flex;
+              justify-content: flex-end;
+              gap: 5px;
+            }
+
+            .badge {
+              padding: 5px 10px;
+              font-size: 0.85rem;
+            }
+          </style>
 
           <!-- DIALOG EDIT APPOINTMENT -->
           <!-- The Modal -->
@@ -417,6 +552,8 @@
 
                 <!-- Modal body -->
                 <div class="modal-body">
+                  <!-- Thông tin bệnh nhân -->
+                  <div class="section-title mb-3">Thông tin bệnh nhân</div>
                   <div class="row-item d-flex">
                     <div class="input-item">
                       <div class="title-input">Họ tên bệnh nhân</div>
@@ -427,74 +564,104 @@
                       <input id="phone-number" type="text" class="m-input" />
                     </div>
                     <div class="input-item">
-                      <div class="title-input">Địa chỉ email</div>
-                      <input id="email" type="email" class="m-input" />
+                      <div class="title-input">Giới tính</div>
+                      <select name="gender" id="gender">
+                        <option value="">Chọn giới tính</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                      </select>
                     </div>
                   </div>
                   <div class="row-item d-flex">
                     <div class="input-item">
-                      <div class="title-input">Giới tính</div>
-                      <select name="gender" id="gender">
-                        <option value="">Chọn giới tính</option>
-                        <option value="0">Nam</option>
-                        <option value="1">Nữ</option>
-                        <option value="2">Khác</option>
-                      </select>
-                    </div>
-                    <div class="input-item input-item-center">
                       <div class="title-input">Ngày sinh</div>
                       <input id="dOBirth" type="date" class="m-input" />
                     </div>
+                    <div class="input-item input-item-center">
+                      <div class="title-input">Địa chỉ</div>
+                      <input id="address" type="text" class="m-input" />
+                    </div>
+                  </div>
+
+                  <!-- Thông tin lịch khám -->
+                  <div class="section-title mb-3 mt-4">Thông tin lịch khám</div>
+                  <div class="row-item d-flex">
                     <div class="input-item">
                       <div class="title-input">Khoa</div>
                       <select name="department" id="department">
                         <option value="">Chọn khoa</option>
                       </select>
                     </div>
-                  </div>
-                  <div class="row-item d-flex">
-                    <div class="input-item">
+                    <div class="input-item input-item-center">
                       <div class="title-input">Bác sĩ</div>
                       <select name="doctor" id="doctor">
                         <option value="">Chọn bác sĩ</option>
                       </select>
                     </div>
-                    <div class="input-item input-item-center">
-                      <div class="title-input">Ca khám</div>
-                      <select
-                        name="appointmentTime"
-                        id="appointmentTime"
-                        disabled
-                      >
-                        <option value="">Chọn ca khám</option>
-                      </select>
-                    </div>
+                  </div>
+                  <div class="row-item d-flex">
                     <div class="input-item">
                       <div class="title-input">Ngày khám</div>
                       <input id="appointmentDate" type="date" class="m-input" />
                     </div>
+                    <div class="input-item input-item-center">
+                      <div class="title-input">Ca khám</div>
+                      <select name="appointmentTime" id="appointmentTime">
+                        <option value="">Chọn ca khám</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="row-item-long">
-                    <div class="input-item">
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Lý do khám</div>
+                      <input id="reason" type="text" class="m-input" />
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
                       <div class="title-input">Dịch vụ</div>
-                      <select name="service" id="service">
+                      <select name="service" id="service" multiple>
                         <option value="">Chọn dịch vụ</option>
                       </select>
                     </div>
                   </div>
-                  <div class="row-item-long">
-                    <div class="input-item">
-                      <div class="title-input">Địa chỉ</div>
-                      <input id="address" type="text" class="m-input" />
-                    </div>
-                  </div>
-                  <div class="row-item-long">
-                    <div class="input-item">
-                      <div class="title-input">Tiền sử bệnh lý</div>
-                      <input id="medicalHistory" type="text" class="m-input" />
-                    </div>
-                  </div>
                 </div>
+
+                <style>
+                  .section-title {
+                    font-weight: 600;
+                    color: #28a745;
+                    font-size: 1.1rem;
+                    border-bottom: 2px solid #28a745;
+                    padding-bottom: 5px;
+                  }
+                  .input-item {
+                    flex: 1;
+                    margin: 0 10px;
+                  }
+                  .input-item-center {
+                    margin: 0 20px;
+                  }
+                  .input-item-full {
+                    margin: 0 10px;
+                    width: calc(100% - 20px);
+                  }
+                  .row-item {
+                    margin-bottom: 15px;
+                    width: 100%;
+                  }
+                  .m-input, select {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    margin-top: 5px;
+                  }
+                  select[multiple] {
+                    height: 100px;
+                  }
+                </style>
 
                 <!-- Modal footer -->
                 <div
