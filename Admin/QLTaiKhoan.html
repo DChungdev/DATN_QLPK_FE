@@ -42,6 +42,196 @@
             font-size: 11px;
             visibility: hidden;
         }
+
+        .data-table {
+          background: white;
+          border-radius: 8px 8px 0 0;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          overflow: hidden;
+          margin-top: 20px;
+          margin-bottom: 0;
+          max-height: 390px;
+          overflow-y: auto;
+        }
+
+        #tblTaiKhoan {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+        }
+
+        #tblTaiKhoan thead th {
+          background: #28a745;
+          color: white;
+          font-weight: 600;
+          padding: 8px 12px;
+          text-align: left;
+          border-bottom: 2px solid #ddd;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        #tblTaiKhoan tbody tr {
+          transition: all 0.3s ease;
+        }
+
+        #tblTaiKhoan tbody tr:hover {
+          background-color: #f5f5f5;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #tblTaiKhoan tbody td {
+          padding: 8px 12px;
+          border-bottom: 1px solid #eee;
+          vertical-align: middle;
+          font-size: 0.9rem;
+        }
+
+        #tblTaiKhoan tbody tr:last-child td {
+          border-bottom: none;
+        }
+
+        .btn-sm {
+          padding: 0.25rem 0.4rem;
+          font-size: 0.75rem;
+        }
+
+        .m-toolbar-table {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .m-input-search {
+          padding: 8px 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          width: 300px;
+          transition: all 0.3s ease;
+        }
+
+        .m-input-search:focus {
+          border-color: #28a745;
+          box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+          outline: none;
+        }
+
+        .m-toolbar-icon {
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+        }
+
+        .m-toolbar-icon:hover {
+          background-color: #f5f5f5;
+        }
+
+        .btn-success {
+          background-color: #28a745;
+          border-color: #28a745;
+          padding: 8px 20px;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+          background-color: #218838;
+          border-color: #1e7e34;
+          transform: translateY(-1px);
+        }
+
+        .pagination-container {
+          background: white;
+          border-radius: 0 0 8px 8px;
+          padding: 10px 20px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .pagination {
+          margin-bottom: 0;
+        }
+        
+        .page-link {
+          color: #28a745;
+          border-color: #dee2e6;
+          transition: all 0.3s ease;
+        }
+        
+        .page-item.active .page-link {
+          background-color: #28a745;
+          border-color: #28a745;
+        }
+        
+        .page-link:hover {
+          color: #218838;
+          background-color: #e9ecef;
+          border-color: #dee2e6;
+        }
+
+        /* Adjust buttons column */
+        #tblTaiKhoan th:last-child, 
+        #tblTaiKhoan td:last-child {
+          width: 90px;
+          text-align: right;
+          padding-right: 5px;
+        }
+        
+        /* Make buttons more compact */
+        .action-buttons {
+          display: flex;
+          justify-content: flex-end;
+          gap: 5px;
+        }
+
+        .action-buttons .btn {
+          padding: 0.25rem 0.4rem;
+          font-size: 0.75rem;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+        }
+
+        .action-buttons .btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-buttons .btn-info {
+          background-color: #17a2b8;
+          border-color: #17a2b8;
+        }
+
+        .action-buttons .btn-info:hover {
+          background-color: #138496;
+          border-color: #117a8b;
+        }
+
+        .action-buttons .btn-primary {
+          background-color: #007bff;
+          border-color: #007bff;
+        }
+
+        .action-buttons .btn-primary:hover {
+          background-color: #0069d9;
+          border-color: #0062cc;
+        }
+
+        .action-buttons .btn-danger {
+          background-color: #dc3545;
+          border-color: #dc3545;
+        }
+
+        .action-buttons .btn-danger:hover {
+          background-color: #c82333;
+          border-color: #bd2130;
+        }
     </style>
 </head>
 
@@ -291,18 +481,25 @@
                         <thead class="table-success">
                             <tr>
                                 <th style="display: none"></th>
-                                <th class="text-center">STT</th>
-                                <th class="text-center" style="width: 190px">Tài khoản</th>
-                                <th class="text-center">Địa chỉ Email</th>
-                                <!-- <th class="m-data-left">Vai trò</th> -->
-                                <th class="text-center">Vai trò</th>
-                                <th></th>
+                                <th class="m-data-left" style="width: 50px">STT</th>
+                                <th class="m-data-left">Tài khoản</th>
+                                <th class="m-data-left">Email</th>
+                                <th class="m-data-left">Số điện thoại</th>
+                                <th class="m-data-left">Vai trò</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Dữ liệu sẽ được thêm vào bằng JavaScript -->
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-container">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-end mt-3">
+                            <!-- Phân trang sẽ được thêm vào bằng JavaScript -->
+                        </ul>
+                    </nav>
                 </div>
                 <!-- DIALOG INFOR DETAIL -->
                 <!-- The Modal -->
@@ -331,12 +528,19 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row-item-long">
-                                    <div class="input-item">
+                                <div class="row-item d-flex">
+                                    <div class="col-6 ps-0">
                                         <div class="title-input">Email</div>
-                                        <input id="email-add" type="text" class="m-input" oninput="kiemTraEmail()">
+                                        <input id="email-add" type="text" class="m-input1 col-12" oninput="kiemTraEmail()">
                                         <div id="email-error-message" class="error-message">
                                             Vui lòng nhập địa chỉ email hợp lệ.
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="title-input">Số điện thoại</div>
+                                        <input id="phone-add" type="text" class="m-input1 col-12" oninput="kiemTraPhone()">
+                                        <div id="phone-error-message" class="error-message">
+                                            Vui lòng nhập số điện thoại hợp lệ (10-11 số).
                                         </div>
                                     </div>
                                 </div>
@@ -345,13 +549,12 @@
                                     <div class="col-12 ps-0">
                                         <div class="title-input">Vai trò</div>
                                         <select name="doctor" id="role-add" class="col-12">
-                                            <option value="0">Admin</option>
-                                            <option value="1">Bác sĩ</option>
-                                            <option value="2">Bệnh nhân</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="doctor">Bác sĩ</option>
+                                            <option value="user">Bệnh nhân</option>
                                         </select>
                                     </div>
                                 </div>
-
                             </div>
 
                             <!-- Modal footer -->
@@ -368,23 +571,30 @@
                 <div class="modal fade" id="dialog-confirm-reset">
                     <div class="modal-dialog modal-md">
                         <div class="modal-content">
-
                             <!-- Modal Header -->
                             <div class="modal-header">
-                                <h4 class="modal-title">Xác nhận reset mật khẩu</h4>
+                                <h4 class="modal-title">Reset mật khẩu</h4>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
 
                             <!-- Modal body -->
                             <div class="modal-body">
-                                <div class="content">Bạn có chắc chắn muốn reset mật khẩu mặc định cho tài khoản này? </div>
+                                <div class="row-item d-flex">
+                                    <div class="col-12 ps-0">
+                                        <div class="title-input">Mật khẩu mới</div>
+                                        <input id="new-password-reset" type="password" class="m-input1 col-12" oninput="kiemTraMatKhauReset()">
+                                        <div id="error-message-reset" class="error-message">
+                                            Mật khẩu phải có chữ hoa, chữ thường và ký tự đặc biệt.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
                             <!-- Modal footer -->
                             <div class="modal-footer" style="background: rgb(232, 232, 232);">
                                 <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">Hủy</button>
-                                <button type="button" id="btnReset" class="btn btn-danger" data-bs-dismiss="modal">Reset</button>
+                                <button type="button" id="btnReset" class="btn btn-danger">Reset</button>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -482,6 +692,35 @@
                 } else {
                     emailInput.classList.add("input-error");
                     emailErrorMessage.style.visibility = "visible";  // Hiển thị thông báo
+                }
+            }
+            function kiemTraMatKhauReset() {
+                const passwordInput = document.getElementById("new-password-reset");
+                const errorMessage = document.getElementById("error-message-reset");
+                const password = passwordInput.value;
+                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{4,}$/;
+
+                if (regex.test(password)) {
+                    passwordInput.classList.remove("input-error");
+                    errorMessage.style.visibility = "hidden";
+                } else {
+                    passwordInput.classList.add("input-error");
+                    errorMessage.style.visibility = "visible";
+                }
+            }
+            function kiemTraPhone() {
+                const phoneInput = document.getElementById("phone-add");
+                const phoneErrorMessage = document.getElementById("phone-error-message");
+                const phone = phoneInput.value;
+                // Biểu thức chính quy kiểm tra số điện thoại (10-11 số)
+                const phoneRegex = /^[0-9]{10,11}$/;
+
+                if (phoneRegex.test(phone)) {
+                    phoneInput.classList.remove("input-error");
+                    phoneErrorMessage.style.visibility = "hidden";
+                } else {
+                    phoneInput.classList.add("input-error");
+                    phoneErrorMessage.style.visibility = "visible";
                 }
             }
     </script>

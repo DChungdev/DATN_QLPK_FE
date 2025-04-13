@@ -56,8 +56,8 @@ $(document).ready(function () {
 
   //Mở modal xác nhận xóa
   $(document).on("click", ".m-delete", function () {
-    const appointmentId = $(this).closest("tr").attr("lk-id");
-    appointmentId = appointmentId;
+    const appointmentId1 = $(this).closest("tr").attr("lk-id");
+    appointmentId = appointmentId1;
     console.log(appointmentId);
     const appointment = dsLK.find((lk) => lk.appointmentId === appointmentId); // Tìm lịch khám trong danh sách
   });

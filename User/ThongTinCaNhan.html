@@ -192,7 +192,7 @@
               src="../assets/img/user.png"
               alt=""
               class="img-fluid rounded-circle"
-              style="border: 0; width: 200px"
+              style="border: 0; width: 200px; aspect-ratio: 1 / 1; object-fit: cover;"
             />
             <h1 id="hotenHeader" class="text-dark">Đức Chung</h1>
           </div>
@@ -273,26 +273,13 @@
                     </tr>
 
                     <tr>
-                      <th scope="row">Tên</th>
+                      <th scope="row">Họ và tên</th>
                       <td>
                         <input
                           id="hoten"
                           type="text"
                           class="form-control"
                           value=""
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Email</th>
-                      <td>
-                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
-                        <input
-                          id="email"
-                          type="text"
-                          class="form-control"
-                          value=""
-                          oninput="kiemTraEmail()"
                         />
                       </td>
                     </tr>
@@ -306,7 +293,6 @@
                           value=""
                           oninput="kiemTraSDT()"
                         />
-                        <!-- <button type="button" class="btn btn-link">Thay Đổi</button> -->
                       </td>
                     </tr>
                     <tr>
@@ -317,7 +303,7 @@
                           type="radio"
                           name="gender"
                           id="male"
-                          value="0"
+                          value="Nam"
                         />
                         <label class="form-check-label me-3" for="male"
                           >Nam</label
@@ -327,7 +313,7 @@
                           type="radio"
                           name="gender"
                           id="female"
-                          value="1"
+                          value="Nữ"
                         />
                         <label class="form-check-label me-3" for="female"
                           >Nữ</label
@@ -337,43 +323,26 @@
                           type="radio"
                           name="gender"
                           id="other"
-                          value="2"
+                          value="Khác"
                         />
                         <label class="form-check-label" for="other">Khác</label>
                       </td>
                     </tr>
                     <tr>
                       <th scope="row">Ngày sinh</th>
-                      <div class="row">
-                        <td>
-                          <div class="col-12">
-                            <input
-                              id="ngaysinh"
-                              type="date"
-                              class="form-control"
-                            />
-                          </div>
-                        </td>
-                      </div>
-                    </tr>
-                    <tr>
-                      <th scope="row">Địa chỉ</th>
                       <td>
-                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
                         <input
-                          id="diachi"
-                          type="text"
+                          id="ngaysinh"
+                          type="date"
                           class="form-control"
-                          value=""
                         />
                       </td>
                     </tr>
                     <tr>
-                      <th scope="row">Tiền sử bệnh lý</th>
+                      <th scope="row">Địa chỉ</th>
                       <td>
-                        <!-- <button id="email" type="button" class="btn btn-link">Thêm</button> -->
                         <input
-                          id="tiensubenhly"
+                          id="diachi"
                           type="text"
                           class="form-control"
                           value=""
@@ -546,22 +515,22 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/sidebarUser.js"></script>
     <script>
-      function getAvata() {
-        var userId = localStorage.getItem("userId");
-        console.log(userId);
-        // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
-        axiosJWT
-          .get(`/api/Patients/getbyuserid/${userId}`)
-          .then(function (response) {
-            let bn = response.data;
-            if (bn.hinhAnh != null) {
-              $("#avatar").attr("src", "http://localhost:37649" + bn.hinhAnh);
-            }
-          })
-          .catch(function (error) {
-            console.error("Lỗi không tìm được:", error);
-          });
-      }
+      // function getAvata() {
+      //   var userId = localStorage.getItem("userId");
+      //   console.log(userId);
+      //   // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
+      //   axiosJWT
+      //     .get(`/api/Patients/getbyuserid/${userId}`)
+      //     .then(function (response) {
+      //       let bn = response.data;
+      //       if (bn.hinhAnh != null) {
+      //         $("#avatar").attr("src", "http://localhost:37649" + bn.hinhAnh);
+      //       }
+      //     })
+      //     .catch(function (error) {
+      //       console.error("Lỗi không tìm được:", error);
+      //     });
+      // }
       function kiemTraEmail() {
         const emailInput = document.getElementById("email");
         const email = emailInput.value;
@@ -620,7 +589,7 @@
               reader.readAsDataURL(file);
             }
           });
-        getAvata();
+        // getAvata();
       });
     </script>
   </body>

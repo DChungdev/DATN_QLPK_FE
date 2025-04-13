@@ -51,8 +51,8 @@ $(document).ready(function () {
             } else if (userRole === 'ROLE_user') {
                 localStorage.setItem("userName", username);
                 // Lấy User ID từ API sau khi đăng nhập thành công
-                // const userId = await getUserId(username, "userId");  // Dùng await để đợi hàm getUserId
-                // localStorage.setItem("userId", response.data);
+                const userId = await getUserId(username, "userId");  // Dùng await để đợi hàm getUserId
+                localStorage.setItem("userId", response.data);
                 window.location.href = '/User/index.html'; // Chuyển hướng patient
             } else if (userRole === 'ROLE_doctor') {
                 localStorage.setItem("doctorName", username);
@@ -122,7 +122,7 @@ $(document).ready(function () {
     async function getUserId(username, Id) {
         // Giả sử có một API gọi đến backend để lấy ID người dùng
         try {
-            const response = await axiosJWT.get(`/api/Auth/${username}`);
+            const response = await axiosJWT.get(`/api/auth/${username}`);
             localStorage.setItem(Id, response.data);
             return response.data.userId;  // Trả về userId sau khi nhận được từ API
         } catch (error) {

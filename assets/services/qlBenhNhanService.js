@@ -173,7 +173,7 @@ $(document).ready(function () {
                     .then(function (response) {
                         // Thêm đường dẫn ảnh vào đối tượng bệnh nhân
                         updatedPatient.image = response.data;
-                        console.log(response.data)
+                        console.log(response.data)  
                         console.log(updatedPatient)
                         // Gửi request cập nhật bệnh nhân
                         return axiosJWT.put(`/api/patients/${bnID}`, updatedPatient);

@@ -1,6 +1,7 @@
 var bn;
 $(document).ready(function () {
-
+    console.log(localStorage.getItem("userId"));
+    console.log(localStorage.getItem("userName"));
     getData();
 
     $('#suaThongTin').on('submit', async function (e) {
@@ -17,17 +18,19 @@ $(document).ready(function () {
                 formData.append("file", file);
 
                 // Sử dụng Axios để gửi file và chờ đợi kết quả
-                const response = await axiosJWT.post('/api/Files/upload', formData);
+                const response = await axiosJWT.post('/api/upload/image', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
 
                 // Thành công, nhận URL từ phản hồi
-                console.log("File URL: ", response.data.fileUrl);
-                imgUrl = response.data.fileUrl;
-
-                // Hiển thị ảnh vừa upload (nếu cần)
-
+                console.log("File URL: ", response.data);
+                imgUrl = response.data;
 
             } catch (error) {
                 console.error("Lỗi khi upload file:", error);
+                showErrorPopup();
                 return;  // Nếu upload file thất bại, không tiếp tục gửi yêu cầu cập nhật bệnh nhân
             }
         }
@@ -39,19 +42,26 @@ $(document).ready(function () {
         }
         let checkedRadio = $('input[name="gender"]:checked');
         let valueGT = checkedRadio.val();
+        const patient = {
+            patientId: bn.patientId,
+            fullName: $("#hoten").val(),
+            image: imgUrl,
+            dateOfBirth: ngaySinh,
+            gender: valueGT, 
+            phone: $("#sdt").val(),
+            address: $("#diachi").val()
+        };
+        console.log('Patient data:', patient);
 
         try {
-            const updateResponse = await axiosJWT.put(`/api/Patients/${bn.benhNhanId}`, {
-                benhNhanId: bn.benhNhanId,
-                maBenhNhan: bn.maBenhNhan,
-                hoTen: $("#hoten").val(),
-                hinhAnh: imgUrl,  // imgUrl có thể là null nếu không có file
-                ngaySinh: ngaySinh,
-                loaiGioiTinh: parseInt(valueGT),
-                soDienThoai: $("#sdt").val(),
-                email: $("#email").val(),
-                diaChi: $("#diachi").val(),
-                tienSuBenhLy: $("#tiensubenhly").val()
+            const updateResponse = await axiosJWT.put(`/api/patients/${bn.patientId}`, {
+                patientId: bn.patientId,
+                fullName: $("#hoten").val(),
+                image: imgUrl,  // imgUrl có thể là null nếu không có file
+                dateOfBirth: ngaySinh,
+                gender: valueGT,
+                phone: $("#sdt").val(),
+                address: $("#diachi").val()
             });
 
             console.log('Cập nhật thông tin thành công:', updateResponse);
@@ -70,12 +80,12 @@ $(document).ready(function () {
         let username = localStorage.getItem('userName');
         var change = {
             username: username,
-            currentPassword: currentPassword,
+            oldPassword: currentPassword,
             newPassword: newPassword
         }
         console.log(change);
         axiosJWT
-            .post(`/api/Auth/change-password`, change)
+            .post(`/api/auth/change-password`, change)
             .then(function (response) {
                 showSuccessPopup();
             })
@@ -99,15 +109,16 @@ function checkConfirm() {
     }
 }
 function getData() {
-    var userId = localStorage.getItem("userId");
-    console.log(userId);
+    var userName = localStorage.getItem("userName");
+    console.log(userName);
     // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
     axiosJWT
-        .get(`/api/Patients/getbyuserid/${userId}`)
+        .get(`/api/patients/findbyUsername/${userName}`)
         .then(function (response) {
             bn = response.data;
+            console.log(bn);
             display();
-            getAvata();
+            // getAvata();
         })
         .catch(function (error) {
             showErrorPopup();
@@ -117,32 +128,40 @@ function getData() {
 function display() {
     console.log(bn);
     var username = localStorage.getItem("userName");
-    $("#hotenHeader").text(bn.hoTen);
+    $("#hotenHeader").text(bn.fullName);
     $("#username").val(username);
-    $("#hoten").val(bn.hoTen);
-    $("#email").val(bn.email);
-    $("#sdt").val(bn.soDienThoai);
-    $("#diachi").val(bn.diaChi);
-    $("#tiensubenhly").val(bn.tienSuBenhLy);
-    if (bn.gioiTinh == "Nam")
+    $("#hoten").val(bn.fullName);
+    $("#email").val(bn.email || '');
+    $("#sdt").val(bn.phone || '');
+    $("#diachi").val(bn.address || '');
+    $("#tiensubenhly").val(bn.tienSuBenhLy || '');
+    
+    // Set gender radio buttons based on gender value
+    if (bn.gender === "Nam") {
         $('#male').prop('checked', true);
-    else if (bn.gioiTinh == "Nữ")
+    } else if (bn.gender === "Nữ") {
         $('#female').prop('checked', true);
-    else
+    } else {
         $('#other').prop('checked', true);
-    // Lấy phần ngày bằng cách cắt chuỗi trước ký tự 'T'
-    if (bn.ngaySinh != null) {
-        let formattedDate = bn.ngaySinh.split('T')[0];
-        $("#ngaysinh").val(formattedDate);
     }
-    // document.getElementById('uploadedImage').src = "http://localhost:37649" + response.data.fileUrl;
-    if (bn.hinhAnh != null) {
-        $('#uploadedImage').attr('src', "http://localhost:37649" + bn.hinhAnh);
+
+    // Set date of birth if available
+    if (bn.dateOfBirth) {
+        let formattedDate = bn.dateOfBirth.split('T')[0];
+        $("#ngaysinh").val(formattedDate);
+    } else {
+        $("#ngaysinh").val('');
+    }
+
+    // Set image if available
+    if (bn.image) {
+        $('#uploadedImage').attr('src', "http://localhost:8080" + bn.image);
+    } else {
+        $('#uploadedImage').attr('src', "http://localhost:8080/uploads/no-img.jpg");
     }
 }
 
 
-// "benhNhanId": "23ae6817-b672-4630-a67c-cfecbbc065d0",
 //         "maBenhNhan": "BN009",
 //         "hoTen": "Nguyen Khac Canh",
 //         "hinhAnh": "canh.jpg",
