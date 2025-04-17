@@ -4,6 +4,28 @@ var selectedDoctorId;
 var selectedDate;
 var selectedTime;
 var patientInfo;
+const baseFee = 100000;
+var fee = baseFee;
+function calculateFee(degree, baseFee) {
+    // Tạo một mảng chứa tỷ lệ phần trăm phí theo từng mức độ bằng cấp
+    const feePercentage = {
+        0: 1.8,    // Giáo sư Y khoa 
+        1: 1.5,  // Phó Giáo sư Y khoa
+        2: 1.4,  // Tiến sĩ Y khoa
+        3: 1.3,  // Bác sĩ Chuyên khoa 2
+        4: 1.2,  // Thạc sĩ Y khoa
+        5: 1.1,  // Bác sĩ Chuyên khoa 1
+        6: 1     // Bác sĩ Đa khoa - 100%
+    };
+
+    // Lấy tỷ lệ phí cho bằng cấp, mặc định là 1 nếu không tìm thấy bằng cấp
+    const percentage = feePercentage[degree] || 1;
+
+    // Tính toán phí dựa trên tỷ lệ phần trăm
+    const fee = baseFee * percentage;
+
+    return fee;
+}
 
 $(document).ready(function () {
     // Lấy thông tin bệnh nhân
@@ -185,7 +207,6 @@ function validateAppointmentForm() {
 function showConfirmationModal() {
     const doctor = dsBacSi.find(d => d.doctorId == selectedDoctorId);
     const department = dsKhoa.find(d => d.departmentId == doctor.departmentId);
-    
     $("#confirmPatientName").text(patientInfo.fullName);
     $("#confirmPhone").text(patientInfo.phone);
     $("#confirmDepartment").text(department.name);
@@ -193,6 +214,8 @@ function showConfirmationModal() {
     $("#confirmDate").text(selectedDate);
     $("#confirmTime").text(selectedTime.split('T')[1].substring(0, 5));
     $("#confirmReason").text($("#reason").val());
+    fee = calculateFee(doctor.degree, baseFee);
+    $("#baseFee").text(fee);
     
     $("#confirmationModal").modal('show');
 }
@@ -203,7 +226,8 @@ function submitAppointment() {
         patientId: patientInfo.patientId,
         doctorId: selectedDoctorId,
         appointmentDate: selectedTime,
-        reason: $("#reason").val()
+        reason: $("#reason").val(),
+        baseFee: fee
     };
     
     axiosJWT
