@@ -7,6 +7,7 @@ var currentPage = 1;
 const recordsPerPage = 10;
 var filteredData = [];
 var appointmentId = "";
+var resultIdToDelete = "";
 
 $(document).ready(function () {
   //Lấy tất cả dữ liệu
@@ -47,6 +48,53 @@ $(document).ready(function () {
     } else {
       console.error("Không tìm thấy thông tin lịch khám!");
     }
+  });
+
+  // Gắn sự kiện cho nút hiển thị modal kết quả khám
+  $(document).on("click", ".m-result", function () {
+    const appointmentId = $(this).closest("tr").attr("lk-id");
+    $("#appointment-result-id").val(appointmentId);
+  });
+
+  // Gắn sự kiện cho nút xem kết quả khám
+  $(document).on("click", ".m-view-result", function () {
+    const appointmentId = $(this).closest("tr").attr("lk-id");
+    viewExaminationResult(appointmentId);
+  });
+  
+  // Gắn sự kiện cho nút sửa kết quả khám từ modal xem
+  $(document).on("click", "#view-result-edit-btn", function () {
+    const resultId = $(this).attr("data-result-id");
+    // Đóng modal xem và mở modal sửa
+    $("#dialog-view-result").modal("hide");
+    // Lấy thông tin để điền vào modal sửa
+    fillEditResultModal(resultId);
+    $("#dialog-edit-result").modal("show");
+  });
+  
+  // Gắn sự kiện cho nút xóa kết quả khám từ modal xem
+  $(document).on("click", "#view-result-delete-btn", function () {
+    const resultId = $(this).attr("data-result-id");
+    // Lưu ID vào biến global để dùng cho việc xóa
+    resultIdToDelete = resultId;
+    // Đóng modal xem và mở modal xác nhận xóa
+    $("#dialog-view-result").modal("hide");
+    $("#dialog-confirm-delete-result").modal("show");
+  });
+  
+  // Xử lý sự kiện khi nhấn nút xác nhận xóa kết quả khám
+  $("#confirm-delete-result-btn").click(function () {
+    deleteExaminationResult(resultIdToDelete);
+  });
+
+  // Xử lý sự kiện khi nhấn nút lưu kết quả khám
+  $(document).on("click", "#btnSaveResult", function () {
+    saveExaminationResult();
+  });
+  
+  // Xử lý sự kiện khi nhấn nút lưu chỉnh sửa kết quả khám
+  $(document).on("click", "#save-edit-result-btn", function () {
+    saveEditExaminationResult();
   });
 
   //Xử lý sự kiện khi nhấn nút sửa
@@ -161,6 +209,12 @@ function displayData(page) {
             </div>
             <div class="m-delete m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-confirm-delete">
               <i class="fas fa-trash-alt text-danger"></i>
+            </div>
+            <div class="m-result m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-add-result" ${item.status === "confirmed" ? '' : 'style="display:none;"'}>
+              <i class="fas fa-notes-medical text-success" title="Thêm kết quả khám"></i>
+            </div>
+            <div class="m-view-result m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-view-result" ${item.status === "completed" ? '' : 'style="display:none;"'}>
+              <i class="fas fa-file-medical-alt text-info" title="Xem kết quả khám"></i>
             </div>
           </div>
         </td>
@@ -412,6 +466,42 @@ function showPopup(type, message) {
   });
 }
 
+function saveExaminationResult() {
+  const result = {
+    appointment: parseInt($("#appointment-result-id").val()),
+    symptoms: $("#symptoms").val(),
+    diagnosis: $("#diagnosis").val(),
+    notes: $("#notes").val(),
+    treatmentPlan: $("#treatmentPlan").val()
+  };
+
+  // Gửi dữ liệu kết quả khám lên máy chủ
+  axiosJWT
+    .post(`/api/medical-results`, result)
+    .then(function(response) {
+      console.log("Thêm kết quả khám thành công:", response.data);
+      
+      // Xóa dữ liệu form sau khi lưu thành công
+      $("#symptoms").val("");
+      $("#diagnosis").val("");
+      $("#notes").val("");
+      $("#treatmentPlan").val("");
+      
+      // Đóng modal
+      $("#dialog-add-result").modal("hide");
+      
+      // Hiển thị thông báo thành công
+      showPopup("success", "Thành công! Đã thêm kết quả khám.");
+      
+      // Tải lại dữ liệu
+      getData();
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi thêm kết quả khám:", error);
+      showPopup("error", "Lỗi! Không thể thêm kết quả khám.");
+    });
+}
+
 async function exportToExcel() {
   try {
     const formattedData = dsLK.map(item => ({
@@ -563,4 +653,105 @@ async function getNameById(controller, id) {
     console.error("Lỗi không tìm được bệnh nhân: ", error);
     return null; // Trả về null nếu có lỗi
   }
+}
+
+// Lấy và hiển thị kết quả khám
+function viewExaminationResult(appointmentId) {
+  axiosJWT.get(`/api/medical-results/appointment/${appointmentId}`)
+    .then(function(response) {
+      const result = response.data;
+      if (result) {
+        // Điền thông tin kết quả khám vào modal
+        $("#view-result-id").text(result.id);
+        $("#view-result-appointment").text(result.appointment);
+        $("#view-result-symptoms").text(result.symptoms || "Không có thông tin");
+        $("#view-result-diagnosis").text(result.diagnosis || "Không có thông tin");
+        $("#view-result-notes").text(result.notes || "Không có thông tin");
+        $("#view-result-treatment").text(result.treatmentPlan || "Không có thông tin");
+        
+        // Lưu ID kết quả khám để sử dụng cho nút sửa và xóa
+        $("#view-result-edit-btn").attr("data-result-id", result.id);
+        $("#view-result-delete-btn").attr("data-result-id", result.id);
+      } else {
+        // Hiển thị thông báo không có kết quả
+        $("#view-result-id").text("Không có thông tin");
+        $("#view-result-appointment").text("Không có thông tin");
+        $("#view-result-symptoms").text("Không có thông tin");
+        $("#view-result-diagnosis").text("Không có thông tin");
+        $("#view-result-notes").text("Không có thông tin");
+        $("#view-result-treatment").text("Không có thông tin");
+      }
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi lấy kết quả khám:", error);
+      showPopup("error", "Lỗi! Không thể lấy kết quả khám.");
+    });
+}
+
+function fillEditResultModal(resultId) {
+  // Lấy thông tin kết quả khám từ API
+  axiosJWT.get(`/api/medical-results/${resultId}`)
+    .then(function(response) {
+      const result = response.data;
+      if (result) {
+        // Điền thông tin kết quả khám vào modal
+        $("#edit-result-id").text(result.id);
+        $("#edit-result-appointment").text(result.appointment);
+        $("#edit-result-symptoms").val(result.symptoms || "");
+        $("#edit-result-diagnosis").val(result.diagnosis || "");
+        $("#edit-result-notes").val(result.notes || "");
+        $("#edit-result-treatment").val(result.treatmentPlan || "");
+    } else {
+        console.error("Không tìm thấy thông tin kết quả khám!");
+      }
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi lấy thông tin kết quả khám:", error);
+      showPopup("error", "Lỗi! Không thể lấy thông tin kết quả khám.");
+    });
+}
+
+function saveEditExaminationResult() {
+  const result = {
+    id: $("#edit-result-id").text(),
+    symptoms: $("#edit-result-symptoms").val(),
+    diagnosis: $("#edit-result-diagnosis").val(),
+    notes: $("#edit-result-notes").val(),
+    treatmentPlan: $("#edit-result-treatment").val()
+  };
+
+  // Gửi dữ liệu kết quả khám đã chỉnh sửa lên máy chủ
+  axiosJWT
+    .put(`/api/medical-results/${result.id}`, result)
+    .then(function(response) {
+      console.log("Cập nhật kết quả khám thành công:", response.data);
+      
+      // Đóng modal
+      $("#dialog-edit-result").modal("hide");
+      
+      // Hiển thị thông báo thành công
+      showPopup("success", "Thành công! Đã cập nhật kết quả khám.");
+      
+      // Tải lại dữ liệu
+      getData();
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi cập nhật kết quả khám:", error);
+      showPopup("error", "Lỗi! Không thể cập nhật kết quả khám.");
+    });
+}
+
+function deleteExaminationResult(resultId) {
+  axiosJWT
+    .delete(`/api/medical-results/${resultId}`)
+    .then(function (response) {
+      console.log("Xóa kết quả khám thành công:", response.data);
+      showPopup("success", "Thành công! Kết quả khám đã được xóa.");
+      $("#dialog-confirm-delete-result").modal("hide");
+      getData();
+    })
+    .catch(function (error) {
+      console.error("Lỗi khi xóa kết quả khám:", error);
+      showPopup("error", "Lỗi! Không thể xóa kết quả khám.");
+  });
 }

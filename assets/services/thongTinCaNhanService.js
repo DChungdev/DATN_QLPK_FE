@@ -117,6 +117,7 @@ function getData() {
         .then(function (response) {
             bn = response.data;
             console.log(bn);
+            localStorage.setItem("userId", bn.patientId);
             display();
             // getAvata();
         })

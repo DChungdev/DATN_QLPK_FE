@@ -2,7 +2,7 @@ var dsBS;
 var bsID = "";
 var dsKhoa;
 var currentPage = 1;
-const recordsPerPage = 4;
+const recordsPerPage = 10;
 var filteredData = []; // Thêm biến để lưu dữ liệu đã lọc
 
 $(document).ready(function () {

@@ -1,140 +1,544 @@
-let patients = [];
-var dsBN;
-var bsId = "";
-var patientId;
-$(document).ready(async function () {
-    await getDoctorId();
+// Khởi tạo biến toàn cục
+window.dsBN = [];
+window.filteredData = []; // Thêm biến để lưu dữ liệu đã lọc
+window.currentPage = 1;
+const recordsPerPage = 10;
+var currentPatientId = "";
+var currentPatientName = "";
+
+$(document).ready(function () {
+    refreshUI();
     getData();
+    
+    // Xử lý upload ảnh cho modal thêm
+    $("#image-upload-add").change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $("#preview-image-add").attr("src", e.target.result);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Xử lý upload ảnh cho modal sửa
+    $("#image-upload-edit").change(function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $("#preview-image-edit").attr("src", e.target.result);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Xử lý tìm kiếm
+    const searchInput = document.querySelector(".m-input-search");
+    searchInput.addEventListener("input", function () {
+        const value = this.value.toLowerCase();
+        window.filteredData = window.dsBN.filter(item => {
+            return (
+                item.fullName.toLowerCase().includes(value) ||
+                (item.phone && item.phone.includes(value)) ||
+                (item.address && item.address.toLowerCase().includes(value)) ||
+                (item.gender && item.gender.toLowerCase().includes(value))
+            );
+        });
+        window.currentPage = 1; // Reset về trang đầu tiên khi tìm kiếm
+        refreshUI();
+    });
+
+    // Xử lý làm mới dữ liệu
+    $("#refresh-data").click(function () {
+        window.currentPage = 1;
+        window.filteredData = []; // Reset dữ liệu đã lọc
+        getData();
+    });
+
+    // Sự kiện khi nhập vào ô tìm kiếm
+    // $(".m-input-search").on("keyup", function () {
+    //     var value = $(this).val().toLowerCase();
+    //     $("#tblBenhNhan tbody tr").filter(function () {
+    //         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+    //     });
+    // });
+
+    $("#refresh-data").click(function () {
+        getData();
+        refreshUI();
+    });
+    
+    // Gắn sự kiện cho nút xem bệnh án
+    $(document).on("click", ".m-view-history", function () {
+        const patientId = $(this).closest("tr").attr("bn-id");
+        const patient = dsBN.find((bn) => bn.patientId == patientId);
+        
+        if (patient) {
+            currentPatientId = patientId;
+            currentPatientName = patient.fullName;
+            $("#patient-name-history").text(patient.fullName);
+            $("#patient-id-history").text(patientId);
+            
+            // Lấy dữ liệu bệnh án
+            getMedicalHistory(patientId);
+        } else {
+            console.error("Không tìm thấy thông tin bệnh nhân!");
+        }
+    });
+
+    // Gắn sự kiện cho nút hiển thị modal Thêm
+    $("#btnOpenModalAdd").click(function () {
+        // Mã xử lý khi mở modal thêm
+    });
+    
+    // Gắn sự kiện cho nút Thêm
+    $("#btnAdd").click(function () {
+        const genderValue = $("#gender-add").val();
+        const imageFile = $("#image-upload-add")[0].files[0];
+        
+        // Tạo đối tượng bệnh nhân mới
+        const newPatient = {
+            fullName: $("#hoten-add").val(),
+            phone: $("#sdt-add").val() || null,
+            gender: genderValue,
+            dateOfBirth: $("#ngaysinh-add").val() ? $("#ngaysinh-add").val() : null,
+            address: $("#diachi-add").val() || null
+        };
+
+        // Nếu có ảnh, upload ảnh trước
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('file', imageFile);
+
+            axiosJWT
+                .post('/api/upload/image', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(function (response) {
+                    // Thêm đường dẫn ảnh vào đối tượng bệnh nhân
+                    newPatient.image = response.data;
+                    // Gửi request thêm bệnh nhân
+                    return axiosJWT.post(`/api/patients`, newPatient);
+                })
+                .then(function (response) {
+                    console.log("Thêm thành công:", response.data);
+                    getData();
+                    refreshUI();
+                })
+                .catch(function (error) {
+                    showErrorPopup();
+                    console.error("Lỗi khi thêm:", error);
+                });
+        } else {
+            // Nếu không có ảnh, gửi request thêm bệnh nhân ngay
+            axiosJWT
+                .post(`/api/patients`, newPatient)
+                .then(function (response) {
+                    console.log("Thêm thành công:", response.data);
+                    getData();
+                    refreshUI();
+                })
+                .catch(function (error) {
+                    showErrorPopup();
+                    console.error("Lỗi khi thêm:", error);
+                });
+        }
+    });
+
+    // Gắn sự kiện cho nút Sửa
+    $("#btnEdit").click(function () {
+        const genderValue = $("#gender-edit").val();
+        const imageFile = $("#image-upload-edit")[0].files[0];
+        
+        // Tạo đối tượng bệnh nhân cập nhật
+        const updatedPatient = {
+            fullName: $("#hoten").val(),
+            email: $("#email").val(),
+            phone: $("#sdt").val() || null,
+            gender: genderValue,
+            dateOfBirth: $("#ngaysinh").val() ? $("#ngaysinh").val() : null,
+            address: $("#diachi").val() || null
+        };
+
+        // Nếu có ảnh mới, upload ảnh trước
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('file', imageFile);
+
+            axiosJWT
+                .post('/api/upload/image', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(function (response) {
+                    // Thêm đường dẫn ảnh vào đối tượng bệnh nhân
+                    updatedPatient.image = response.data;
+                    console.log(response.data)  
+                    console.log(updatedPatient)
+                    // Gửi request cập nhật bệnh nhân
+                    return axiosJWT.put(`/api/patients/${currentPatientId}`, updatedPatient);
+                })
+                .then(function (response) {
+                    console.log("Cập nhật thành công:", response.data);
+                    getData();
+                    refreshUI();
+                    showSuccessPopup();
+                })
+                .catch(function (error) {
+                    showErrorPopup();
+                    console.error("Lỗi khi cập nhật:", error);
+                });
+        } else {
+            // Nếu không có ảnh mới, gửi request cập nhật ngay
+            axiosJWT
+                .put(`/api/patients/${currentPatientId}`, updatedPatient)
+                .then(function (response) {
+                    console.log("Cập nhật thành công:", response.data);
+                    getData();
+                    refreshUI();
+                    showSuccessPopup();
+                })
+                .catch(function (error) {
+                    showErrorPopup();
+                    console.error("Lỗi khi cập nhật:", error);
+                });
+        }
+    });
+
+    //Mở modal xác nhận xóa
+    $(document).on("click", ".m-delete", function () {
+        const patientId = $(this).closest("tr").attr("bn-id");
+        currentPatientId = patientId;
+        console.log(currentPatientId);
+        const benhNhan = dsBN.find((bn) => bn.patientId === patientId); // Tìm bệnh nhân trong danh sách
+    });
+
+    $("#btnDelete").click(function () {
+        axiosJWT
+            .delete(`/api/patients/${currentPatientId}`)
+            .then(function (response) {
+                console.log("Xóa thành công:", response.data);
+                getData(); // Tải lại dữ liệu sau khi cập nhật
+            })
+            .catch(function (error) {
+                showErrorPopup();
+                console.error("Lỗi khi xóa:", error);
+            });
+    });
+    // //Xử lý sự kiện khi nhấn nút Export
+    // $(".m-toolbar-export").click(function () {
+    //     exportToExcelPatient();
+    // });
+    // });
+    // // Hàm xử lý khi ấn nút xuất file Excel
+    // function exportToExcelPatient() {
+    //     // Lấy dữ liệu từ bảng
+    //     const table = document.querySelector("#tblBenhNhan");
+    //     const rows = table.querySelectorAll("tbody tr");
+
+    //     // Tạo mảng chứa dữ liệu
+    //     const data = [];
+
+    //     // Lấy tiêu đề cột (tùy chọn)
+    //     const headers = [];
+    //     table.querySelectorAll("thead th").forEach((th, index) => {
+    //       const headerText = th.textContent.trim();
+    //       if (headerText && index !== 0) {  // Loại bỏ cột STT trong tiêu đề
+    //         headers.push(headerText);
+    //       }
+    //     });
+    //     data.push(headers); // Thêm tiêu đề vào mảng dữ liệu
+
+    //     // Lặp qua các dòng của bảng để lấy dữ liệu
+    //     rows.forEach((row, index) => {
+    //       const rowData = [];
+    //       // Thêm số thứ tự vào cột đầu tiên
+    //       rowData.push(index + 1); // STT (số thứ tự bắt đầu từ 1)
+
+    //       row.querySelectorAll("td").forEach((td, cellIndex) => {
+    //         const cellData = td.textContent.trim();
+    //         // Thêm dữ liệu vào dòng (bỏ qua cột STT ở vị trí đầu tiên)
+    //         if (cellIndex !== 0) { // Loại bỏ cột STT (cột đầu tiên)
+    //           rowData.push(cellData || ""); // Nếu không có dữ liệu, thêm chuỗi trống
+    //         }
+    //       });
+
+    //       data.push(rowData); // Thêm dòng dữ liệu vào mảng
+    //     });
+
+    //     // Tạo workbook từ dữ liệu
+    //     const ws = XLSX.utils.aoa_to_sheet(data);
+
+    //     // Tạo workbook và thêm sheet
+    //     const wb = XLSX.utils.book_new();
+    //     XLSX.utils.book_append_sheet(wb, ws, "Bệnh Nhân");
+
+    //     // Xuất file Excel
+    //     XLSX.writeFile(wb, "danh_sach_benh_nhan.xlsx");
+    //   }
+
 });
 
-
-
 function getData() {
-    console.log(bsId);
     axiosJWT
-        .get(`/api/Patients/getbydoctorid/${bsId}`)
+        .get(`/api/patients/getbydoctorid/${localStorage.getItem("doctorId")}`)
         .then(function (response) {
-            dsBN = response.data;
-            console.log(dsBN);
-            display(dsBN);
+            window.dsBN = response.data;
+            window.filteredData = window.dsBN; // Khởi tạo filteredData với toàn bộ dữ liệu
+            console.log(window.dsBN);
+            refreshUI();
         })
         .catch(function (error) {
             console.error("Lỗi không tìm được:", error);
+            window.dsBN = [];
+            window.filteredData = [];
+            refreshUI();
         });
 }
 
-function display(data) {
-    const tableBody = document.querySelector('#tblBenhNhan tbody');
-    tableBody.innerHTML = ''; // Xóa nội dung cũ nếu có
+function displayData(page) {
+    const tbody = document.querySelector("#tblBenhNhan tbody");
+    tbody.innerHTML = "";
 
-    data.forEach((item, index) => {
-        const row = `
-      <tr bn-id="${item.benhNhanId}">
-        <td class="chk">
-          <input type="checkbox" />
-        </td>
-        <td class="m-data-left">${index + 1}</td>
-        <td class="m-data-left">${item.maBenhNhan}</td>
-        <td class="m-data-left">${item.hoTen}</td>
-        <td class="m-data-left">${item.gioiTinh || "Không xác định"}</td>
-        <td class="m-data-left">${formatDate(item.ngaySinh)}</td>
-        <td class="m-data-left">${item.email || "Chưa có email"}</td>
-        <td class="m-data-left">${item.diaChi || "Chưa có địa chỉ"}</td>
-        <td>
-            <div class="m-table-tool">
-                <div class="m-edit m-tool-icon" data-patient-id="${item.benhNhanId}" data-bs-toggle="modal" data-bs-target="#dialog-edit">
-                    <i class="fas fa-eye text-primary"></i>
-                </div>
-            </div>
-        </td>
-    `;
-        tableBody.innerHTML += row; // Thêm hàng vào bảng
-    });
-}
+    const dataToDisplay = window.filteredData.length > 0 ? window.filteredData : window.dsBN;
 
-// Sự kiện xem kết quả khám
-$(document).on('click', '.m-edit', function () {
-    patientId = $(this).data('patientId');
-    console.log('patientId:  ', patientId);
-    loadResults(patientId);
-
-});
-
-function loadResults(patientId) {
-    axiosJWT.get(`/api/Results/ketquakham/${patientId}`)
-        .then((response) => {
-            const results = response.data;
-            if (!results || results.length === 0) {
-                console.log("Không có kết quả khám nào.");
-                return;
-            }
-            console.log("Kết quả: ", results);
-            displayResults(results); // Hiển thị danh sách kết quả
-        })
-        .catch((error) => {
-            console.error('Lỗi khi tải danh sách kết quả:', error);
-        });
-}
-
-
-// Hàm hiển thị danh sách kết quả
-async function displayResults(results) {
-    const resultTableBody = $('#tblData'); // Xác định phần tbody của bảng
-    resultTableBody.empty(); // Xóa nội dung cũ trước khi thêm mới
-
-    if (results.length === 0) {
-        resultTableBody.append('<tr><td colspan="9">Không có kết quả khám nào.</td></tr>'); // Hiển thị thông báo nếu không có dữ liệu
+    if (!dataToDisplay || dataToDisplay.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center">Không có dữ liệu</td></tr>';
         return;
     }
 
-    // Lặp qua danh sách kết quả và tạo từng dòng
-    // Lặp qua danh sách kết quả và tạo từng dòng
-    for (const [index, result] of results.entries()) {
-        let tenBenhNhan = "Đang tải..."; // Giá trị mặc định trong khi đợi API trả về
+    const startIndex = (page - 1) * recordsPerPage;
+    const endIndex = Math.min(startIndex + recordsPerPage, dataToDisplay.length);
 
-        try {
-            tenBenhNhan = await getTenBenhNhan(result.lichKhamId); // Gọi API lấy tên bệnh nhân
-        } catch (error) {
-            console.error("Lỗi khi lấy tên bệnh nhân:", error);
-        }
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = dataToDisplay[i];
 
-        const resultRow = `
-            <tr>
-                <td style="display: none">${result.ketQuaKhamId}</td>
-                <td>${index + 1}</td>
-                <td>${formatDate(result.ngayTao)}</td>
-                <td>${result.chanDoan || "Không có chẩn đoán"}</td>
-                <td>${result.chiDinhThuoc || "Không có chỉ định thuốc"}</td>
-                <td>${result.ghiChu || "Không có ghi chú"}</td>
-            </tr>
+        const row = document.createElement("tr");
+        row.setAttribute("bn-id", item.patientId);
+
+        // Tạo URL ảnh từ API hoặc sử dụng ảnh mặc định
+        const imageUrl = item.image ? `http://localhost:8080${item.image}` : 'http://localhost:8080/uploads/no-img.jpg';
+
+        row.innerHTML = `
+            <td style="display: none">${item.patientId}</td>
+            <td>${i + 1}</td>
+            <td>
+                <div class="image-preview" style="width: 50px; height: 50px; cursor: pointer;">
+                    <img src="${imageUrl}" alt="Patient Image" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </td>
+            <td>${item.fullName}</td>
+            <td>${item.gender}</td>
+            <td>${formatDate(item.dateOfBirth) || 'Không có'}</td>
+            <td>${item.phone || 'Không có'}</td>
+            <td>${item.address || 'Không có'}</td>
+            <td>
+                <div class="m-table-tool">
+                    <div class="m-view-history m-tool-icon" data-bs-toggle="modal" data-bs-target="#view-medical-history" title="Xem bệnh án">
+                      <i class="fas fa-file-medical text-primary"></i>
+                    </div>
+                  </div>
+            </td>
         `;
-        resultTableBody.append(resultRow); // Thêm dòng vào bảng
+
+        // Thêm sự kiện click cho ảnh
+        const imageElement = row.querySelector('.image-preview img');
+        imageElement.addEventListener('click', function() {
+            const enlargedImage = document.getElementById('enlargedImage');
+            enlargedImage.src = this.src;
+            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            imageModal.show();
+        });
+
+        tbody.appendChild(row);
     }
 }
 
 function formatDate(dateString) {
-    if (!dateString) return "Không xác định";
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-async function getDoctorId() {
-    try {
-        let userId = localStorage.getItem("doctorId");
-        const response = await axiosJWT.get(`/api/Doctors/getbyuserid/${userId}`);
-        bsId = response.data.bacSiId; // Lấy giá trị ID bác sĩ
-    } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
-    }
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('vi-VN', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
-async function getTenBenhNhan(lichKhamId) {
-    try {
-        // Gọi API lấy tên bệnh nhân từ lichKhamId
-        const response = await axiosJWT.get(`/api/Results/tenbenhnhan/${lichKhamId}`);
-        return response.data; // Giả sử API trả về trực tiếp tên bệnh nhân
-    } catch (error) {
-        console.error("Lỗi khi lấy tên bệnh nhân:", error);
-        return "Không có tên bệnh nhân"; // Trả về giá trị mặc định nếu có lỗi
+function showErrorPopup() {
+    const errorPopup = document.getElementById("error-popup");
+    errorPopup.style.visibility = "visible";
+
+    // Ẩn popup sau 3 giây
+    setTimeout(() => {
+        hideErrorPopup();
+    }, 3000);
+}
+
+function hideErrorPopup() {
+    const errorPopup = document.getElementById("error-popup");
+    errorPopup.style.visibility = "hidden";
+}
+
+// Hàm lấy bệnh án của bệnh nhân
+function getMedicalHistory(patientId) {
+    // Reset table
+    const historyTable = document.getElementById("medical-history-table");
+    historyTable.innerHTML = "";
+    
+    // Hiển thị loading nếu cần
+    
+    axiosJWT
+        .get(`/api/medical-results/patient/${patientId}`)
+        .then(function (response) {
+            const medicalRecords = response.data;
+            
+            if (medicalRecords && medicalRecords.length > 0) {
+                // Sắp xếp theo ngày gần đây nhất
+                medicalRecords.sort((a, b) => {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
+                
+                // Hiển thị số lượng bệnh án
+                $("#record-count").text(medicalRecords.length);
+                $("#no-records-message").hide();
+                
+                // Hiển thị dữ liệu vào bảng
+                medicalRecords.forEach((record, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${formatDateTime(record.createdAt)}</td>
+                        <td>${record.symptoms || "Không có"}</td>
+                        <td>${record.diagnosis || "Không có"}</td>
+                        <td>${record.treatmentPlan || "Không có"}</td>
+                        <td>${record.notes || "Không có"}</td>
+                    `;
+                    historyTable.appendChild(row);
+                });
+            } else {
+                // Không có bệnh án
+                $("#record-count").text("0");
+                $("#no-records-message").show();
+            }
+        })
+        .catch(function (error) {
+            console.error("Lỗi khi lấy bệnh án:", error);
+            $("#record-count").text("0");
+            $("#no-records-message").show();
+            $("#no-records-message p").text("Đã xảy ra lỗi khi tải bệnh án.");
+        });
+}
+
+function showSuccessPopup() {
+    // Hiển thị popup
+    const popup = document.getElementById("success-popup");
+    popup.style.visibility = "visible";  // Hoặc có thể dùng popup.classList.add('visible');
+
+    // Tự động ẩn popup sau 3 giây (3000ms)
+    setTimeout(() => {
+        closePopup();
+    }, 3000);
+}
+
+function closePopup() {
+    const popup = document.getElementById("success-popup");
+    popup.style.visibility = "hidden";  // Ẩn popup
+}
+
+function updatePagination() {
+    const paginationContainer = document.querySelector(".pagination");
+    paginationContainer.innerHTML = "";
+
+    const dataToDisplay = window.filteredData.length > 0 ? window.filteredData : window.dsBN;
+
+    if (!dataToDisplay || dataToDisplay.length === 0) {
+        return;
+    }
+
+    const totalPages = Math.ceil(dataToDisplay.length / recordsPerPage);
+
+    // Nút Trước
+    const prevLi = document.createElement("li");
+    prevLi.className = `page-item ${window.currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1" ${window.currentPage === 1 ? 'aria-disabled="true"' : ''}>Trước</a>`;
+    prevLi.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (window.currentPage > 1) {
+            window.currentPage--;
+            refreshUI();
+        }
+    });
+    paginationContainer.appendChild(prevLi);
+
+    // Các nút số trang
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement("li");
+        pageLi.className = `page-item ${i === window.currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        pageLi.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.currentPage = i;
+            refreshUI();
+        });
+        paginationContainer.appendChild(pageLi);
+    }
+
+    // Nút Sau
+    const nextLi = document.createElement("li");
+    nextLi.className = `page-item ${window.currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" ${window.currentPage === totalPages ? 'aria-disabled="true"' : ''}>Sau</a>`;
+    nextLi.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (window.currentPage < totalPages) {
+            window.currentPage++;
+            refreshUI();
+        }
+    });
+    paginationContainer.appendChild(nextLi);
+}
+
+function refreshUI() {
+    displayData(window.currentPage);
+    updatePagination();
+}    
+
+
+
+function fillEditModal(benhNhan) {
+    // Gán dữ liệu vào các trường input của modal
+    $("#hoten").val(benhNhan.fullName); // Họ tên
+    $("#email").val(benhNhan.email || ""); // Email
+    $("#sdt").val(benhNhan.phone); // Số điện thoại
+    // Gán giới tính
+    const genderValue = benhNhan.gender === "Nam" ? 'Nam' : benhNhan.gender === "Nữ" ? 'Nữ' : 'Khác';
+    $("#gender-edit").val(genderValue);
+
+    // Gán ngày sinh
+    const formattedDate = benhNhan.dateOfBirth
+        ? new Date(benhNhan.dateOfBirth).toLocaleDateString('en-CA')
+        : "";
+    $("#ngaysinh").val(formattedDate);
+
+    // Gán địa chỉ
+    $("#diachi").val(benhNhan.address || "");
+
+    // Gán ảnh đại diện nếu có
+    if (benhNhan.imageUrl) {
+        $("#preview-image-edit").attr("src", benhNhan.imageUrl);
+    } else {
+        $("#preview-image-edit").attr("src", "../assets/img/default-avatar.png");
     }
 }

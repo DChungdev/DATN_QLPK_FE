@@ -1,339 +1,395 @@
 var userId = localStorage.getItem("userId");
-var lkId = "";
-var kq;
+var appointmentId = "";
 $(document).ready(function () {
-  console.log(userId);
+  console.log("User ID:", userId);
 
-  // Lắng nghe sự kiện click trên các nút .optionButton
+  // Get user avatar and appointment data when page loads
+  getAppointmentData();
+
+  // Listen for click events on option buttons
   $(document).on("click", ".optionButton", function () {
-    // Tìm phần tử cha gần nhất có lớp .custom-card
+    // Find the closest parent with class .custom-card
     const parentCard = $(this).closest(".custom-card");
 
-    // Lấy giá trị lkId từ thuộc tính của phần tử cha
-    lkId = parentCard.attr("lkId");
-    console.log(lkId);
+    // Get the appointmentId from the parent element
+    appointmentId = parentCard.attr("appointmentId");
+    console.log("Selected appointment ID:", appointmentId);
   });
 
-  //Xử lý khi nhấn nút đồng ý hủy
+  // Handle cancel confirmation button
   $("#btnCancel").click(function () {
-    //Lấy lý do
+    // Get reason
     const reason = $("#modal-confirm-cancel #reason").val();
-    // Kiểm tra nếu lý do trống
+    // Check if reason is empty
     if (!reason.trim()) {
-      // Thêm class m-input-error vào ô input lý do
+      // Add error class to reason input
       $("#modal-confirm-cancel #reason").addClass("input-error");
-      // Thêm thông báo title cho người dùng
+      // Add title message for the user
       $("#modal-confirm-cancel #reason").attr(
         "title",
         "Lý do từ chối không được để trống!"
       );
-      // Focus vào ô input
+      // Focus on input
       $("#modal-confirm-cancel #reason").focus();
     } else {
-      // Xóa thông báo lỗi nếu lý do không trống
-      $("#modal-confirm-cancel #reason").removeClass("m-input-error");
+      // Remove error message if reason is not empty
+      $("#modal-confirm-cancel #reason").removeClass("input-error");
       $("#modal-confirm-cancel #reason").removeAttr("title");
-      // Gọi API Hủy lịch khám
+      // Call API to cancel appointment
       cancelAppointment(reason);
     }
   });
-  //Xử lý khi nhấn nút đồng ý xóa
+
+  // Handle delete confirmation button
   $("#btnDelete").click(function () {
-    console.log(lkId);
-    //Gọi API Hủy lịch khám
+    console.log("Deleting appointment:", appointmentId);
+    // Call API to delete appointment
     deleteAppointment();
   });
-  //Xử lý khi nhấn nút đồng ý xóa
+
+  // Handle complete confirmation button
   $("#btnComplete").click(function () {
-    console.log(lkId);
-    //Gọi API Hủy lịch khám
+    console.log("Completing appointment:", appointmentId);
+    // Call API to complete appointment
     completeAppointment();
   });
 
-  //Xử lý khi nhấn option xem
+  // Handle view result option
   $(document).on("click", "#optionViewResult", function () {
     getResultAppointment();
   });
-  //Xử lý khi nhấn option xem
-  $(document).on("click", "#completeAppointment", function () {
-    completeAppointment();
-  });
 });
 
-//Hoàn thành lịch khám
-function completeAppointment() {
+// Fetch appointment data with user ID from localStorage
+function getAppointmentData() {
+  // First, get the user avatar
+  getUserAvatar();
+  
+  // Then get appointment data directly using userId from localStorage
+  if (userId) {
+    getAllAppointmentsByUserId(userId);
+  } else {
+    console.error("No user ID found in localStorage");
+    showPopup("error", "Lỗi! Không tìm thấy thông tin người dùng.");
+  }
+}
+
+// Get user avatar
+function getUserAvatar() {
   axiosJWT
-    .put(`/api/v1/Appointments/appointment/${lkId}`)
+    .get(`/api/patients/findbyUsername/${localStorage.getItem("userName")}`)
     .then(function (response) {
-      console.log("Hoàn thành lịch khám thành công:", response.data);
-      getAvata();
-      showPopup("success", "Thành công! Lịch khám đã được hoàn thành.");
-      $("#modal-confirm-complete #btnComplete")
-        .prop("disabled", false)
-        .text("Có");
+      const patient = response.data;
+      console.log("Patient data:", patient);
+      if (patient.image) {
+        $("#avatar").attr("src", "http://localhost:8080" + patient.image);
+      }
     })
     .catch(function (error) {
-      getAvata();
-      showPopup("error", "Lỗi! Không thể hoàn thành lịch khám.");
-      $("#modal-confirm-complete #btnComplete")
-        .prop("disabled", false)
-        .text("Có");
-      console.error("Lỗi khi hủy lịch khám: ", error);
+      console.error("Error fetching patient data:", error);
     });
 }
 
-//Lấy kết quả khám theo LichKhamId
+// Complete an appointment
+function completeAppointment() {
+  axiosJWT
+    .put(`/api/appointments/${appointmentId}/status/completed`)
+    .then(function (response) {
+      console.log("Appointment completed successfully:", response.data);
+      showPopup("success", "Thành công! Lịch khám đã được hoàn thành.");
+      $("#modal-confirm-complete").modal("hide");
+      getAppointmentData();
+    })
+    .catch(function (error) {
+      showPopup("error", "Lỗi! Không thể hoàn thành lịch khám.");
+      console.error("Error completing appointment:", error);
+    });
+}
+
+// Get medical result for an appointment
 async function getResultAppointment() {
   try {
-    const response = await axiosJWT.get(`/api/Results/ketqua/${lkId}`);
-    kq = response.data;
-    fillViewModal();
+    const response = await axiosJWT.get(`/api/medical-results/appointment/${appointmentId}`);
+    const result = response.data;
+    fillViewModal(result);
   } catch (error) {
-    console.error("Lỗi không tìm được kết quả khám: ", error);
+    console.error("Error fetching medical results:", error);
+    showPopup("error", "Lỗi! Không thể lấy kết quả khám.");
   }
 }
 
-//Điền thông tin vào modal xem
-function fillViewModal() {
-  if (kq === null) {
+// Fill the view modal with medical result data
+function fillViewModal(result) {
+  if (!result) {
     showPopup("error", "Lỗi! Không có kết quả khám!");
-  } else {
-    $("#diagnose").val(kq.chanDoan);
-    $("#prescription").val(kq.chiDinhThuoc);
-    $("#note").val(kq.ghiChu);
+    return;
   }
+  
+  $("#diagnose").val(result.diagnosis || "Không có thông tin");
+  $("#prescription").val(result.treatmentPlan || "Không có thông tin");
+  $("#note").val(result.notes || "Không có thông tin");
 }
 
-//Xử lý khi nhấn đồng ý xóa lịch khám
+// Delete an appointment
 function deleteAppointment() {
-  // Hiển thị trạng thái đang xử lý
-  $("#modal-confirm-cancel #btnDelete")
-    .prop("disabled", true)
-    .text("Đang xóa...");
+  $("#btnDelete").prop("disabled", true).text("Đang xóa...");
+  
   axiosJWT
-    .delete(`/api/v1/Appointments/${lkId}`)
+    .delete(`/api/appointments/${appointmentId}`)
     .then(function (response) {
-      console.log("Xóa lịch khám thành công:", response.data);
-      getAvata();
+      console.log("Appointment deleted successfully:", response.data);
       showPopup("success", "Thành công! Lịch khám đã được xóa.");
-      $("#modal-confirm-cancel #btnDelete").prop("disabled", false).text("Xóa");
+      $("#modal-confirm-delete").modal("hide");
+      $("#btnDelete").prop("disabled", false).text("Có");
+      getAppointmentData();
     })
     .catch(function (error) {
       showPopup("error", "Lỗi! Không thể xóa lịch khám.");
-      $("#modal-confirm-cancel #btnDelete").prop("disabled", false).text("Xóa");
-      getAvata();
-      console.error("Lỗi khi xóa lịch khám: ", error);
+      $("#btnDelete").prop("disabled", false).text("Có");
+      console.error("Error deleting appointment:", error);
     });
 }
-//Xử lý khi nhấn đồng ý hủy lịch khám
+
+// Cancel an appointment
 function cancelAppointment(reason) {
-  // Hiển thị trạng thái đang xử lý
-  $("#modal-confirm-cancel #btnCancel")
-    .prop("disabled", true)
-    .text("Đang xử lý...");
+  $("#btnCancel").prop("disabled", true).text("Đang xử lý...");
+  
   axiosJWT
     .put(
-      `/api/v1/Appointments/cancel/${lkId}`,
-      JSON.stringify("Bệnh nhân: " + reason),
-      {
-        headers: {
-          "Content-Type": "application/json", // Đảm bảo header là application/json
-        },
-      }
+      `/api/appointments/${appointmentId}/status/cancelled`,
+      { reason: "Bệnh nhân: " + reason }
     )
     .then(function (response) {
-      console.log("Hủy lịch khám thành công:", response.data);
-      $("#modal-confirm-cancel").modal("hide");
-      getAvata();
+      console.log("Appointment cancelled successfully:", response.data);
       showPopup("success", "Thành công! Lịch khám đã được hủy.");
-      $("#modal-confirm-cancel #btnCancel").prop("disabled", false).text("Có");
+      $("#modal-confirm-cancel").modal("hide");
+      $("#btnCancel").prop("disabled", false).text("Có");
+      getAppointmentData();
     })
     .catch(function (error) {
-      $("#modal-confirm-cancel").modal("hide");
-      getAvata();
       showPopup("error", "Lỗi! Không thể hủy lịch khám.");
-      $("#modal-confirm-cancel #btnCancel").prop("disabled", false).text("Có");
-      console.error("Lỗi khi hủy lịch khám: ", error);
+      $("#modal-confirm-cancel").modal("hide");
+      $("#btnCancel").prop("disabled", false).text("Có");
+      console.error("Error cancelling appointment:", error);
     });
 }
-//Hàm hiển thị popup thông báo
+
+// Show popup notification
 function showPopup(type, message) {
   const popupItem = $(`.m-popup-item.m-popup-${type}`);
 
-  // Xóa nội dung trước đó
+  // Clear previous content
   popupItem.find(".m-popup-text").empty();
 
-  // Cập nhật nội dung thông báo
+  // Update notification content
   const [title, detail] = message.split("! ");
   popupItem
     .find(".m-popup-text")
     .append(`<span>${title}! </span>`)
     .append(detail);
 
-  // Hiển thị popup block
+  // Show popup
   popupItem.addClass("show");
 
-  // Ẩn popup sau 3 giây
+  // Hide popup after 3 seconds
   setTimeout(() => {
     popupItem.removeClass("show");
   }, 3000);
 
-  // Đảm bảo tắt popup nếu người dùng đóng
+  // Ensure popup closes when user clicks close button
   popupItem.find(".m-popup-close").on("click", function () {
-    // Đóng popup
     popupItem.removeClass("show");
   });
 }
-//Lấy avartar
-function getAvata() {
+
+// Get appointments by user ID
+function getAllAppointmentsByUserId(userId) {
   axiosJWT
-    .get(`/api/Patients/getbyuserid/${userId}`)
+    .get(`/api/appointments/patient/${userId}`)
     .then(function (response) {
-      const bn = response.data;
-      console.log(bn);
-      if (bn.hinhAnh != null) {
-        $("#avatar").attr("src", "http://localhost:37649" + bn.hinhAnh);
-      }
-      //Lấy ra danh sách lịch khám theo benhNhanId
-      getAllAppointmentByBenhNhanId(bn.benhNhanId);
+      const appointments = response.data;
+      console.log("Appointments data:", appointments);
+      displayAppointments(appointments);
     })
     .catch(function (error) {
-      console.error("Lỗi không tìm được:", error);
+      console.error("Error fetching appointments:", error);
+      showPopup("error", "Lỗi! Không thể lấy danh sách lịch khám.");
     });
 }
-//Lấy danh sách lịch khám
-function getAllAppointmentByBenhNhanId(benhNhanId) {
-  console.log(benhNhanId);
-  axiosJWT
-    .get(`/api/v1/Appointments/patient/${benhNhanId}`)
-    .then(function (response) {
-      const dsLK = response.data;
-      display1(dsLK);
-    })
-    .catch(function (error) {
-      console.error("Lỗi không tìm được:", error);
-    });
-}
-// Hàm để chuyển trạng thái thành lớp CSS
-function getBadgeClass(trangThai) {
-  switch (trangThai) {
-    case "Đã đặt":
+
+// Get badge class based on status
+function getBadgeClass(status) {
+  switch (status) {
+    case "pending":
       return "badge-booked";
-    case "Đang xử lý":
+    case "confirmed":
       return "bg-primary";
-    case "Đã hủy":
+    case "cancelled":
       return "bg-danger";
-    default:
+    case "completed":
       return "bg-success";
+    default:
+      return "bg-secondary";
   }
 }
 
-//Lấy tên bác sĩ theo id
-async function getNameById(id) {
+// Get status text based on status code
+function getStatusText(status) {
+  switch (status) {
+    case "pending":
+      return "Chờ xử lý";
+    case "confirmed":
+      return "Đã xác nhận";
+    case "cancelled":
+      return "Đã hủy";
+    case "completed":
+      return "Hoàn thành";
+    default:
+      return "Không xác định";
+  }
+}
+
+// Get doctor name by ID
+async function getDoctorName(doctorId) {
   try {
-    const response = await axiosJWT.get(`/api/Doctors/${id}`);
-    const object = response.data;
-    return object.hoTen; // Trả về họ tên
+    const response = await axiosJWT.get(`/api/doctors/${doctorId}`);
+    const doctor = response.data;
+    return doctor.fullName;
   } catch (error) {
-    console.error("Lỗi không tìm được bác sĩ: ", error);
-    return null; // Trả về null nếu có lỗi
+    console.error(`Error fetching doctor with ID ${doctorId}:`, error);
+    return "Không xác định";
   }
 }
 
-//Hiển thị lịch khám theo benhNhanId
-async function display1(dsLK) {
-  console.log(dsLK);
-  // Hiển thị dữ liệu
-  const container = $("#container_lk .row");
-  container.empty(); // Xóa nội dung cũ
+// Format date from ISO string to dd/MM/yyyy
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("vi-VN");
+}
 
-  // Tạo danh sách các Promise để lấy tên bác sĩ
-  const doctorNamesPromises = dsLK.map((item) => getNameById(item.bacSiId));
-  const doctorNames = await Promise.all(doctorNamesPromises); // Chờ tất cả Promise hoàn thành
+// Format time from ISO string to HH:mm
+function formatTime(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+}
 
-  const response = await axiosJWT.get(`/api/Services`);
-  const dsDichVu = response.data;
-  console.log(dsDichVu);
-  // Kiểm tra dsDichVu có tồn tại và là một mảng không
-  if (!Array.isArray(dsDichVu)) {
-    console.error("dsDichVu không phải là mảng hợp lệ.");
+// Format currency with Vietnamese format
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount);
+}
+
+// Get service names by their IDs
+async function getServiceNames(serviceIds) {
+  if (!serviceIds || serviceIds.length === 0) {
+    return "Không có dịch vụ";
   }
-  dsLK.forEach((lichKham, index) => {
-    // Lấy tên bệnh nhân từ mảng đã xử lý
-    const doctorName = doctorNames[index];
-    // // Định dạng hiển thị dd/MM/yyyy
-    const dateString = lichKham.ngayKham;
-    const date = new Date(dateString);
-    const formattedDate = date.toLocaleDateString("en-GB"); // 'en-GB' chuẩn Anh (ngày/tháng/năm)
-    // Xử lý trạng thái lịch khám
-    const status = lichKham.trangThaiLichKham;
+  
+  try {
+    const response = await axiosJWT.get("/api/services");
+    const services = response.data;
+    
+    const serviceNames = serviceIds.map(id => {
+      const service = services.find(s => s.id === id);
+      return service ? service.name : `Dịch vụ ${id}`;
+    });
+    
+    return serviceNames.join(", ");
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    return serviceIds.join(", ");
+  }
+}
 
-    const completeDisabled = status === "Hoàn thành" ? "" : "disabled";
-    let readDisabled = status === "Hoàn thành" ? "" : "disabled";
-    readDisabled = status === "Đã hoàn thành" ? "" : "disabled";
-    const editDisabled =
-      status === "Đang xử lý" || status === "Đã đặt" ? "" : "disabled";
-
-    const readReason = status === "Đã hủy" ? "" : "d-none";
-    const readService = status !== "Đã hủy" ? "" : "d-none";
-
-    //Hiển thị dịch vụ
-    // Tìm dịch vụ tương ứng với lichKham.dichVuId trong dsDichVu
-    const service = dsDichVu.find(
-      (dichVu) => dichVu.dichVuId === lichKham.dichVuId
-    );
-    const serviceName = service ? service.tenDichVu : "Chưa xác định";
-    const col = `
-          <div class="col-md-4">
-              <div class="card custom-card" lkId="${lichKham.lichKhamId}">
-                  <div class="d-flex justify-content-between align-items-start">
-                      <span class="badge rounded-pill ${getBadgeClass(
-                        status
-                      )}" style="min-width: 70px">
-                          ${status}
-                      </span>
-                      <span class="dropdown">
-                          <button class="optionButton btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                              <i class="fas fa-ellipsis-v"></i>
-                          </button>
-                          <ul class="dropdown-menu">
-                              <li>
-                                  <div class="dropdown-item ${completeDisabled}" data-bs-target="#modal-confirm-complete" data-bs-toggle="modal">
-                                      <i class="fas fa-check me-2" style="color: rgb(28, 212, 37)"></i> Hoàn thành
-                                  </div>
-                              </li>
-                              <li>
-                                  <div id="optionViewResult" class="dropdown-item ${readDisabled}" data-bs-target="#modal-view-result" data-bs-toggle="modal">
-                                      <i class="fas fa-eye me-2" style="color: rgb(28, 212, 212)"></i> Xem kết quả khám
-                                  </div>
-                              </li>
-                              <li>
-                                  <div class="dropdown-item ${editDisabled}" data-bs-target="#modal-confirm-cancel" data-bs-toggle="modal">
-                                      <i class="fas fa-times-circle me-2" style="color: rgb(255, 123, 0)"></i> Hủy
-                                  </div>
-                              </li>
-                              <li>
-                                  <div class=" dropdown-item" data-bs-target="#modal-confirm-delete" data-bs-toggle="modal">
-                                      <i class="fas fa-trash-alt me-2" style="color: rgb(245, 76, 76)"></i> Xóa
-                                  </div>
-                              </li>
-                          </ul>
-                      </span>
+// Display all appointments
+async function displayAppointments(appointments) {
+  const container = $("#container_lk .row");
+  container.empty();
+  
+  if (!appointments || appointments.length === 0) {
+    container.append('<div class="col-12 text-center mt-5"><h4>Không có lịch sử khám</h4></div>');
+    return;
+  }
+  
+  // Process all appointments in parallel
+  const processedAppointments = await Promise.all(
+    appointments.map(async (appointment) => {
+      const doctorName = await getDoctorName(appointment.doctorId);
+      const serviceNames = await getServiceNames(appointment.serviceIds);
+      
+      return {
+        ...appointment,
+        doctorName,
+        serviceNames,
+        formattedDate: formatDate(appointment.appointmentDate),
+        formattedTime: formatTime(appointment.appointmentDate),
+        appointmentTimestamp: new Date(appointment.appointmentDate).getTime()
+      };
+    })
+  );
+  
+  // Sort appointments by date (newest first)
+  processedAppointments.sort((a, b) => b.appointmentTimestamp - a.appointmentTimestamp);
+  
+  // Create a new row every 3 appointments for proper grid layout
+  let currentRow;
+  
+  // Display each appointment
+  processedAppointments.forEach((appointment, index) => {
+    // Create a new row every 3 appointments
+    if (index % 3 === 0) {
+      currentRow = $('<div class="row mb-3"></div>');
+      container.append(currentRow);
+    }
+    
+    const status = appointment.status;
+    const statusText = getStatusText(status);
+    
+    // Determine which buttons to enable/disable based on status
+    const viewResultDisabled = status !== "completed" ? "disabled" : "";
+    const cancelDisabled = (status !== "pending" && status !== "confirmed") ? "disabled" : "";
+    
+    const card = $(`
+      <div class="col-md-4 mb-4">
+        <div class="card custom-card" appointmentId="${appointment.appointmentId}">
+          <div class="d-flex justify-content-between align-items-start">
+            <span class="badge rounded-pill ${getBadgeClass(status)}" style="min-width: 80px">
+              ${statusText}
+            </span>
+            <span class="dropdown">
+              <button class="optionButton btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <div id="optionViewResult" class="dropdown-item ${viewResultDisabled}" data-bs-target="#modal-view-result" data-bs-toggle="modal">
+                    <i class="fas fa-eye me-2" style="color: rgb(28, 212, 212)"></i> Xem kết quả khám
                   </div>
-                  <div class="mt-2">
-                      <h5 class="mb-1">Bác sĩ: ${doctorName}</h5>
-                      <p class="mb-1">Ngày khám: ${formattedDate}</p>
-                      <p class="mb-1">Ca khám: ${lichKham.gioKham}</p>
-                      <p class="mb-1 ${readReason}">Lý do hủy: ${
-      lichKham.lyDo
-    }</p>
-                      <p class="mb-0 ${readService}">Dịch vụ: ${serviceName}</p>
-
+                </li>
+                <li>
+                  <div class="dropdown-item ${cancelDisabled}" data-bs-target="#modal-confirm-cancel" data-bs-toggle="modal">
+                    <i class="fas fa-times-circle me-2" style="color: rgb(255, 123, 0)"></i> Hủy lịch khám
                   </div>
-              </div>
+                </li>
+              </ul>
+            </span>
           </div>
-      `;
-
-    container.append(col);
+          <div class="mt-2">
+            <h5 class="mb-1">Bác sĩ: ${appointment.doctorName}</h5>
+            <p class="mb-1">Ngày khám: ${appointment.formattedDate}</p>
+            <p class="mb-1">Giờ khám: ${appointment.formattedTime}</p>
+            <p class="mb-1">Lý do khám: ${appointment.reason || "Không có"}</p>
+            <p class="mb-1">Phí khám: ${formatCurrency(appointment.baseFee)}</p>
+            <p class="mb-1">Tổng phí: ${formatCurrency(appointment.totalFee)}</p>
+            <p class="mb-0">Dịch vụ: ${appointment.serviceNames}</p>
+          </div>
+        </div>
+      </div>
+    `);
+    
+    // Add the card to the current row
+    currentRow.append(card);
   });
 }

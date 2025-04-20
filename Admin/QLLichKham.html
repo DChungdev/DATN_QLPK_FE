@@ -75,41 +75,10 @@
             <!-- ============================================================== -->
             <!-- Logo -->
             <!-- ============================================================== -->
-            <div class="navbar-brand">
+            <div class="navbar-brand" style="display: flex; justify-content: center;">
               <!-- Logo icon -->
-              <a href="index.html">
-                <b class="logo-icon">
-                  <!-- Dark Logo icon -->
-                  <img
-                    src="../assets/img/logo-icon.png"
-                    alt="homepage"
-                    class="dark-logo"
-                  />
-                  <!-- Light Logo icon -->
-                  <img
-                    src="../assets/img/logo-icon.png"
-                    alt="homepage"
-                    class="light-logo"
-                  />
-                </b>
-                <!--End Logo icon -->
-                <!-- Logo text -->
-                <span class="logo-text">
-                  <!-- dark Logo text -->
-                  <img
-                    src="../assets/img/logo-text.png"
-                    alt="homepage"
-                    class="dark-logo"
-                  />
-                  <!-- Light Logo text -->
-                  <img
-                    src="../assets/img/logo-light-text.png"
-                    class="light-logo"
-                    alt="homepage"
-                  />
-                </span>
-              </a>
-            </div>
+              <img src="../assets/img/logo-benh-vien.jpg" alt="homepage" class="dark-logo" width="80px"/>
+          </div>
             <!-- ============================================================== -->
             <!-- End Logo -->
             <!-- ============================================================== -->
@@ -376,6 +345,9 @@
                       </div>
                       <div class="m-delete m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-confirm-delete">
                         <i class="fas fa-trash-alt text-danger"></i>
+                      </div>
+                      <div class="m-result m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-add-result" style="display:none;">
+                        <i class="fas fa-notes-medical text-success"></i>
                       </div>
                     </div>
                   </td>
@@ -758,6 +730,311 @@
               </div>
             </div>
           </div>
+          <!-- DIALOG THÊM KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="dialog-add-result">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Thêm kết quả khám</h4>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  <input type="hidden" id="appointment-result-id">
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Triệu chứng</div>
+                      <textarea id="symptoms" class="m-input" rows="3" placeholder="Nhập triệu chứng của bệnh nhân"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Chẩn đoán</div>
+                      <textarea id="diagnosis" class="m-input" rows="2" placeholder="Nhập chẩn đoán"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Ghi chú</div>
+                      <textarea id="notes" class="m-input" rows="3" placeholder="Nhập ghi chú cho bệnh nhân"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Kế hoạch điều trị</div>
+                      <textarea id="treatmentPlan" class="m-input" rows="3" placeholder="Nhập kế hoạch điều trị"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <style>
+                  textarea.m-input {
+                    resize: none;
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    transition: border-color 0.2s ease;
+                  }
+                  textarea.m-input:focus {
+                    border-color: #28a745;
+                    outline: none;
+                    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+                  }
+                  .title-input {
+                    font-weight: 500;
+                    margin-bottom: 5px;
+                    color: #333;
+                  }
+                </style>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                  <button
+                    type="button"
+                    class="btn btn-light me-2"
+                    data-bs-dismiss="modal"
+                  >
+                    Hủy
+                  </button>
+                  <button type="button" id="btnSaveResult" class="btn btn-success">
+                    Lưu kết quả
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- DIALOG XEM KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="dialog-view-result">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Xem kết quả khám</h4>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  <div class="result-info-container">
+                    <div class="result-info-item">
+                      <div class="result-info-label">Mã kết quả:</div>
+                      <div class="result-info-value" id="view-result-id"></div>
+                    </div>
+                    <div class="result-info-item">
+                      <div class="result-info-label">Mã lịch khám:</div>
+                      <div class="result-info-value" id="view-result-appointment"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="result-section">
+                    <div class="result-section-title">Triệu chứng</div>
+                    <div class="result-section-content" id="view-result-symptoms"></div>
+                  </div>
+                  
+                  <div class="result-section">
+                    <div class="result-section-title">Chẩn đoán</div>
+                    <div class="result-section-content" id="view-result-diagnosis"></div>
+                  </div>
+                  
+                  <div class="result-section">
+                    <div class="result-section-title">Ghi chú</div>
+                    <div class="result-section-content" id="view-result-notes"></div>
+                  </div>
+                  
+                  <div class="result-section">
+                    <div class="result-section-title">Kế hoạch điều trị</div>
+                    <div class="result-section-content" id="view-result-treatment"></div>
+                  </div>
+                </div>
+
+                <style>
+                  .result-info-container {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #eee;
+                  }
+                  
+                  .result-info-item {
+                    display: flex;
+                    align-items: center;
+                  }
+                  
+                  .result-info-label {
+                    font-weight: 600;
+                    margin-right: 8px;
+                    color: #333;
+                  }
+                  
+                  .result-info-value {
+                    color: #555;
+                  }
+                  
+                  .result-section {
+                    margin-bottom: 20px;
+                  }
+                  
+                  .result-section-title {
+                    font-weight: 600;
+                    color: #28a745;
+                    margin-bottom: 8px;
+                    padding-bottom: 4px;
+                    border-bottom: 1px solid #e9ecef;
+                  }
+                  
+                  .result-section-content {
+                    background-color: #f8f9fa;
+                    padding: 12px 15px;
+                    border-radius: 4px;
+                    min-height: 50px;
+                    white-space: pre-line;
+                  }
+                </style>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                  >
+                    Đóng
+                  </button>
+                  <button type="button" id="view-result-edit-btn" class="btn btn-primary" data-result-id="">
+                    Sửa
+                  </button>
+                  <button type="button" id="view-result-delete-btn" class="btn btn-danger" data-result-id="">
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- DIALOG SỬA KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="dialog-edit-result">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Sửa kết quả khám</h4>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  <div class="result-info-container">
+                    <div class="result-info-item">
+                      <div class="result-info-label">Mã kết quả:</div>
+                      <div class="result-info-value" id="edit-result-id"></div>
+                    </div>
+                    <div class="result-info-item">
+                      <div class="result-info-label">Mã lịch khám:</div>
+                      <div class="result-info-value" id="edit-result-appointment"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Triệu chứng</div>
+                      <textarea id="edit-result-symptoms" class="m-input" rows="3" placeholder="Nhập triệu chứng của bệnh nhân"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Chẩn đoán</div>
+                      <textarea id="edit-result-diagnosis" class="m-input" rows="2" placeholder="Nhập chẩn đoán"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Ghi chú</div>
+                      <textarea id="edit-result-notes" class="m-input" rows="3" placeholder="Nhập ghi chú cho bệnh nhân"></textarea>
+                    </div>
+                  </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Kế hoạch điều trị</div>
+                      <textarea id="edit-result-treatment" class="m-input" rows="3" placeholder="Nhập kế hoạch điều trị"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                  <button
+                    type="button"
+                    class="btn btn-light me-2"
+                    data-bs-dismiss="modal"
+                  >
+                    Hủy
+                  </button>
+                  <button type="button" id="save-edit-result-btn" class="btn btn-success">
+                    Lưu thay đổi
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- DIALOG XÁC NHẬN XÓA KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="dialog-confirm-delete-result">
+            <div class="modal-dialog modal-md">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Xác nhận xóa kết quả khám</h4>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  <div class="content">Bạn có chắc chắn muốn xóa kết quả khám này?</div>
+                </div>
+                <!-- Modal footer -->
+                <div
+                  class="modal-footer"
+                  style="background: rgb(232, 232, 232)"
+                >
+                  <button
+                    type="button"
+                    class="btn btn-light me-2"
+                    data-bs-dismiss="modal"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    id="confirm-delete-result-btn"
+                    class="btn btn-danger"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- POPUP TOAST MESSAGE -->
           <div class="m-popup-block">
             <div class="m-popup-item m-popup-success">
@@ -805,7 +1082,7 @@
           </div>
         </div>
         <footer class="footer text-center text-muted">
-          Designed and Developed by <b class="text-primary">Nhóm 7</b>
+          Designed and Developed by <b class="text-primary">Chung</b>
         </footer>
         <!-- ============================================================== -->
         <!-- End footer -->

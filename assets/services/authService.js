@@ -56,6 +56,7 @@ $(document).ready(function () {
                 window.location.href = '/User/index.html'; // Chuyển hướng patient
             } else if (userRole === 'ROLE_doctor') {
                 localStorage.setItem("doctorName", username);
+                await getDoctorId(username)
                 // Lấy User ID từ API sau khi đăng nhập thành công
                 // const userId = await getUserId(username, "doctorId");  // Dùng await để đợi hàm getUserId
                 
@@ -131,6 +132,16 @@ $(document).ready(function () {
         }
     }
 
+    async function getDoctorId(username){
+        try {
+            const response = await axiosJWT.get(`/api/doctors/findbyUsername/${username}`);
+            const doctorId = response.data.doctorId
+            localStorage.setItem("doctorId", doctorId);
+        } catch (error) {
+            console.error("Lỗi khi lấy UserId:", error);
+            throw error;  // Ném lỗi để catch ở ngoài
+        }
+    }
 
     function showErrorPopup() {
         const errorPopup = document.getElementById("error-popup");

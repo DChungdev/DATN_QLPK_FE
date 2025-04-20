@@ -2,7 +2,7 @@ let services = []; // Biến lưu trữ toàn bộ danh sách dịch vụ
 let khoas = []; 
 $(document).ready(function () {
     loadServices(); // Tải danh sách dịch vụ khi trang được load
-    loadKhoas(); // Gọi hàm để tải danh sách khoa
+    // loadKhoas(); // Gọi hàm để tải danh sách khoa
     
     // Sự kiện tìm kiếm
     $(".search-input").on("input", function () {
@@ -147,26 +147,26 @@ function loadServices() {
         });
 }
 
-function loadKhoas(selectId, selectedKhoaId = null) {
-    axiosJWT
-        .get(`/api/v1/Departments`)
-        .then(function (response) {
-            khoas = response.data;
-            const khoaSelect = $(`#${selectId}`); // Lấy thẻ <select> từ HTML
-            // Xóa danh sách cũ nếu có
-            khoaSelect.empty();
+// function loadKhoas(selectId, selectedKhoaId = null) {
+//     axiosJWT
+//         .get(`/api/v1/Departments`)
+//         .then(function (response) {
+//             khoas = response.data;
+//             const khoaSelect = $(`#${selectId}`); // Lấy thẻ <select> từ HTML
+//             // Xóa danh sách cũ nếu có
+//             khoaSelect.empty();
 
-            khoaSelect.append(`<option value="">Chọn khoa</option>`);
-            khoas.forEach(khoa => {
-                const isSelected = selectedKhoaId === khoa.khoaId ? 'selected' : '';
-                const option = `<option value="${khoa.khoaId}" ${isSelected}>${khoa.tenKhoa}</option>`;
-                khoaSelect.append(option); // Thêm từng khoa vào <select>
-            });
-        })
-        .catch(function (error) {
-            console.error("Lỗi khi lấy danh sách khoa:", error);
-        });
-}
+//             khoaSelect.append(`<option value="">Chọn khoa</option>`);
+//             khoas.forEach(khoa => {
+//                 const isSelected = selectedKhoaId === khoa.khoaId ? 'selected' : '';
+//                 const option = `<option value="${khoa.khoaId}" ${isSelected}>${khoa.tenKhoa}</option>`;
+//                 khoaSelect.append(option); // Thêm từng khoa vào <select>
+//             });
+//         })
+//         .catch(function (error) {
+//             console.error("Lỗi khi lấy danh sách khoa:", error);
+//         });
+// }
 
 // Hàm hiển thị danh sách dịch vụ dưới dạng card
 function displayServices(data) {

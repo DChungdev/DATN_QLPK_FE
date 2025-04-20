@@ -8,7 +8,7 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
     <!-- Favicon icon -->
-    <title>Quản lý bác sĩ</title>
+    <title>Quản lý kết quả khám</title>
     <!-- Custom CSS -->
     <link href="../assets/extra-libs/c3/c3.min.css" rel="stylesheet" />
     <link
@@ -31,7 +31,279 @@
     <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
     <script src="../assets/vendor/axios.min.js"></script>
     <script src="../assets/services/axios.js"></script>
-    <script src="../assets/services/QLBacSiService.js"></script>
+    <script src="../assets/services/qlKetQuaKhamAdmin.js"></script>
+
+    <style>
+      .data-table {
+        background: white;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-top: 20px;
+        margin-bottom: 0;
+        max-height: 390px; /* Control the maximum height */
+        overflow-y: auto;
+      }
+  
+      #tblBacSi {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+  
+      #tblBacSi thead th {
+        background: #28a745;
+        color: white;
+        font-weight: 600;
+        padding: 8px 12px; /* Reduced padding */
+        text-align: left;
+        border-bottom: 2px solid #ddd;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+  
+      #tblBacSi tbody tr {
+        transition: all 0.3s ease;
+      }
+  
+      #tblBacSi tbody tr:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+  
+      #tblBacSi tbody td {
+        padding: 8px 12px; /* Reduced padding */
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+        font-size: 0.9rem; /* Slightly smaller font */
+      }
+  
+      #tblBacSi tbody tr:last-child td {
+        border-bottom: none;
+      }
+  
+      .btn-sm {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+      }
+  
+      .m-toolbar-table {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+      }
+  
+      .m-input-search {
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 300px;
+        transition: all 0.3s ease;
+      }
+  
+      .m-input-search:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+        outline: none;
+      }
+
+      .date-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .date-filter-group input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 140px;
+        transition: all 0.3s ease;
+      }
+
+      .date-filter-group input[type="date"]:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+        outline: none;
+      }
+
+      .date-filter-group button {
+        padding: 8px 20px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .date-filter-group button:hover {
+        transform: translateY(-1px);
+      }
+  
+      .m-toolbar-icon {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+  
+      .m-toolbar-icon:hover {
+        background-color: #f5f5f5;
+      }
+  
+      .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 8px 20px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+  
+      .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        transform: translateY(-1px);
+      }
+  
+      .pagination-container {
+        background: white;
+        border-radius: 0 0 8px 8px;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .pagination {
+        margin-bottom: 0;
+      }
+      
+      .page-link {
+        color: #28a745;
+        border-color: #dee2e6;
+        transition: all 0.3s ease;
+      }
+      
+      .page-item.active .page-link {
+        background-color: #28a745;
+        border-color: #28a745;
+      }
+      
+      .page-link:hover {
+        color: #218838;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+      }
+  
+      /* Adjust buttons column */
+      #tblBacSi th:last-child, 
+      #tblBacSi td:last-child {
+        width: 90px;
+        text-align: right;
+        padding-right: 5px;
+      }
+      
+      /* Make buttons more compact */
+      .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+      }
+
+      /* Thêm CSS cho cột ảnh */
+      #tblBacSi td:nth-child(3) {
+        text-align: center;
+        padding: 5px;
+      }
+
+      #tblBacSi td:nth-child(3) .image-preview {
+        margin: 0 auto;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      #tblBacSi td:nth-child(3) img {
+        display: block;
+        transition: transform 0.3s ease;
+      }
+
+      #tblBacSi td:nth-child(3) img:hover {
+        transform: scale(1.05);
+      }
+
+      /* CSS cho modal ảnh */
+      #imageModal .modal-content {
+        background: transparent;
+        border: none;
+      }
+      
+      #imageModal .modal-header {
+        border: none;
+        padding: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+      }
+      
+      #imageModal .modal-body {
+        padding: 0;
+      }
+      
+      #imageModal .btn-close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        background-color: white;
+        opacity: 0.8;
+        border-radius: 50%;
+        padding: 8px;
+      }
+      
+      #imageModal .btn-close:hover {
+        opacity: 1;
+      }
+      
+      #enlargedImage {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+
+      .image-upload-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .image-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .upload-controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .upload-controls button {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+      }
+    </style>
   </head>
 
   <body>
@@ -42,7 +314,7 @@
               <span>Sửa thông tin thành công!</span>
           </div>
           <div class="m-popup-tool">
-              <span class="m-popup-close">x</span>
+              <span class="m-popup-close"></span>
           </div>
         </div>
     </div>
@@ -149,9 +421,9 @@
                   <span class="ml-2 d-none d-lg-inline-block"
                     ><span>Hello,</span>
                     <span class="text-dark">Admin</span>
-                   </span>
+                    </span>
                 </a>
-               
+                
               </li>
               <!-- ============================================================== -->
               <!-- User profile and search -->
@@ -195,17 +467,17 @@
                   ><span class="hide-menu">Bệnh nhân</span></a
                 >
               </li>
-              <li class="sidebar-item selected">
+              <li class="sidebar-item">
                 <a
-                  class="sidebar-link sidebar-link active"
+                  class="sidebar-link sidebar-link"
                   href="QLBacSi.html"
                   aria-expanded="false"
                   ><i data-feather="users" class="feather-icon"></i
                   ><span class="hide-menu">Bác sĩ</span></a
                 >
               </li>
-<!-- 
-              <li class="sidebar-item">
+
+              <!-- <li class="sidebar-item">
                 <a
                   class="sidebar-link sidebar-link"
                   href="QLThuocVatTu.html"
@@ -232,6 +504,16 @@
                   aria-expanded="false"
                   ><i data-feather="calendar" class="feather-icon"></i
                   ><span class="hide-menu">Lịch khám</span></a
+                >
+              </li>
+
+              <li class="sidebar-item selected">
+                <a
+                  class="sidebar-link sidebar-link active"
+                  href="QLKetQuaKham.html"
+                  aria-expanded="false"
+                  ><i data-feather="clipboard" class="feather-icon"></i
+                  ><span class="hide-menu">Kết quả khám</span></a
                 >
               </li>
 
@@ -301,18 +583,10 @@
         <div class="main">
           <div class="m-title-table">
             <div class="m-title-table-left">
-              <div class="m-title-text"><h2>Quản lý bác sĩ</h2></div>
+              <div class="m-title-text"><h2>Quản lý kết quả khám</h2></div>
             </div>
             <div class="m-title-table-right">
-              <button
-                id="btnOpenModalAdd"
-                class="btn btn-success"
-                data-bs-toggle="modal"
-                data-bs-target="#modalThemBacSi"
-              >
-                <i class="fas fa-plus"></i>
-                Thêm mới
-              </button>
+              <!-- Nút thêm mới được ẩn vì chỉ thêm từ quản lý lịch khám -->
             </div>
           </div>
           <div class="m-toolbar-table">
@@ -320,48 +594,74 @@
               <input
                 class="m-input m-input-icon m-input-search"
                 type="text"
-                placeholder="Tìm kiếm theo mã, họ tên"
+                placeholder="Tìm kiếm theo mã bệnh nhân, chẩn đoán..."
               />
             </div>
+            <div class="date-filter-group">
+              <input
+                id="startDate" 
+                class="form-control"
+                type="date"
+                placeholder="Từ ngày"
+              />
+              <span>-</span>
+              <input
+                id="endDate" 
+                class="form-control"
+                type="date"
+                placeholder="Đến ngày"
+              />
+              <button class="btn btn-primary" id="btnFilter">
+                <i class="fas fa-filter"></i>
+                Lọc
+              </button>
+            </div>
             <div class="m-toolbar-actionbar">
-              <div class="m-toolbar-export m-toolbar-icon">
+              <div class="m-toolbar-export m-toolbar-icon" id="exportButton">
                 <i class="fas fa-download" style="color: #35a9d0"></i>
               </div>
-              <div class="m-toolbar-refresh m-toolbar-icon">
+              <div class="m-toolbar-refresh m-toolbar-icon" id="refresh-data">
                 <i class="fas fa-sync-alt" style="color: #35a9d0"></i>
               </div>
             </div>
           </div>
           <div class="data-table">
-            <table id="tblBacSi" class="table-hover">
+            <table id="tblKetQuaKham" class="table-hover">
               <thead class="table-success">
                 <tr>
-                  <!-- <th class="chk">
-                    <input type="checkbox" id="check-all" />
-                  </th> -->
-                  <th style="display: none"></th>
-                  <th class="text-center" style="width: 100px">STT</th>
-                  <th class="m-data-left" style="width: 150px">Mã bác sĩ</th>
-                  <th class="m-data-left">Họ và tên</th>
-                  <th class="m-data-left">Bằng cấp</th>
-                  <th class="m-data-left" style="width: 120px">SĐT</th>
-                  <th class="m-data-left">Email</th>
-                  <th class="m-data-left">Địa chỉ</th>
+                  <th class="text-center" style="width: 70px">STT</th>
+                  <th class="m-data-left">Mã kết quả</th>
+                  <th class="m-data-left">Mã lịch khám</th>
+                  <th class="m-data-left">Bệnh nhân</th>
+                  <th class="m-data-left">Bác sĩ</th>
+                  <th class="m-data-left">Ngày khám</th>
+                  <th class="m-data-left">Triệu chứng</th>
+                  <th class="m-data-left">Chẩn đoán</th>
+                  <th class="m-data-left">Ghi chú</th>
+                  <th class="m-data-left">Kế hoạch điều trị</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
+                <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
               </tbody>
             </table>
           </div>
-          <!-- DIALOG THÊM BÁC SĨ -->
-          <!-- The Modal -->
-          <div class="modal fade" id="modalThemBacSi">
+          <div class="pagination-container">
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-end mt-3">
+                <!-- Phân trang sẽ được thêm vào bằng JavaScript -->
+              </ul>
+            </nav>
+          </div>
+
+          <!-- DIALOG XEM CHI TIẾT KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="modalChiTietKetQua">
             <div class="modal-dialog modal-lg">
               <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
-                  <h4 class="modal-title">Tạo bác sĩ mới</h4>
+                  <h4 class="modal-title">Chi tiết kết quả khám</h4>
                   <button
                     type="button"
                     class="btn-close"
@@ -371,63 +671,65 @@
 
                 <!-- Modal body -->
                 <div class="modal-body">
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Mã bác sĩ</div>
-                      <input id="add-mabs" type="text" readonly class="m-input" />
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Thông tin bệnh nhân</h5>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Mã bệnh nhân:</div>
+                        <div class="col-md-7" id="detail-patientId"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Họ tên:</div>
+                        <div class="col-md-7" id="detail-patientName"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Ngày sinh:</div>
+                        <div class="col-md-7" id="detail-patientDob"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Giới tính:</div>
+                        <div class="col-md-7" id="detail-patientGender"></div>
+                      </div>
                     </div>
-                    <div class="input-item input-item-center">
-                      <div class="title-input">Họ tên bác sĩ</div>
-                      <input id="add-tenbs" type="text" class="m-input" oninput="kiemTraTen()"/>
-                    </div>
-                    <div class="input-item">
-                      <div class="title-input">Bằng cấp</div>
-                      <select name="bangCap" id="add-bangCap">
-                        <option value="0">Giáo sư Y khoa</option>
-                        <option value="1">Phó Giáo sư Y khoa</option>
-                        <option value="2">Tiến sĩ Y khoa</option>
-                        <option value="3">Bác sĩ Chuyên khoa 2</option>
-                        <option value="4">Thạc sĩ Y khoa</option>
-                        <option value="5">Bác sĩ Chuyên khoa 1</option>
-                        <option value="6">Bác sĩ Đa khoa</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Số điện thoại</div>
-                      <input id="add-sdt" type="text" class="m-input" />
-                    </div>
-                    <div class="input-item input-item-center">
-                      <div class="title-input">Email</div>
-                      <input id="add-email" type="email" class="m-input" oninput="kiemTraEmail()"/>
-                    </div>
-                    <div class="input-item">
-                      <div class="title-input">Giờ làm việc</div>
-                      <select name="gioLamViec" id="add-gioLamViec" multiple>
-                        <option value="08:00">08:00</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="12:00">12:00</option>
-                        <option value="13:00">13:00</option>
-                        <option value="14:00">14:00</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                        <option value="17:00">17:00</option>
-                      </select>
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Thông tin lịch khám</h5>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Mã lịch khám:</div>
+                        <div class="col-md-7" id="detail-appointmentId"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Bác sĩ:</div>
+                        <div class="col-md-7" id="detail-doctorName"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Ngày khám:</div>
+                        <div class="col-md-7" id="detail-appointmentDate"></div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-md-5 font-weight-bold">Dịch vụ:</div>
+                        <div class="col-md-7" id="detail-services"></div>
+                      </div>
                     </div>
                   </div>
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Năm kinh nghiệm</div>
-                      <input id="add-namKinhNghiem" type="text" class="m-input" />
-                    </div>
-                    <div class="input-item-center">
-                      <div class="title-input">Địa chỉ</div>
-                      <input id="add-diaChi" type="text" class="m-input" />
-                    </div>
+                  <hr>
+                  <h5 class="mb-3">Kết quả khám</h5>
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold">Triệu chứng:</label>
+                    <div class="p-3 bg-light rounded" id="detail-symptoms"></div>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold">Chẩn đoán:</label>
+                    <div class="p-3 bg-light rounded" id="detail-diagnosis"></div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold">Ghi chú:</label>
+                    <div class="p-3 bg-light rounded" id="detail-notes"></div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold">Kế hoạch điều trị:</label>
+                    <div class="p-3 bg-light rounded" id="detail-treatmentPlan"></div>
+                  </div>
+                </div>
 
                 <!-- Modal footer -->
                 <div
@@ -436,35 +738,23 @@
                 >
                   <button
                     type="button"
-                    class="btn btn-light me-2"
-                    data-bs-dismiss="modal"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="button"
-                    id="btnAdd"
                     class="btn btn-success"
                     data-bs-dismiss="modal"
                   >
-                    Thêm
+                    Đóng
                   </button>
                 </div>
               </div>
             </div>
           </div>
-          
 
-        </div>
-
-      <!-- DIALOG SỬA BÁC SĨ -->
-          <!-- The Modal -->
-          <div class="modal fade" id="modalSuaBacSi">
+          <!-- DIALOG SỬA KẾT QUẢ KHÁM -->
+          <div class="modal fade" id="modalSuaKetQua">
             <div class="modal-dialog modal-lg">
               <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
-                  <h4 class="modal-title">Sửa thông tin bác sĩ</h4>
+                  <h4 class="modal-title">Sửa kết quả khám</h4>
                   <button
                     type="button"
                     class="btn-close"
@@ -474,52 +764,32 @@
 
                 <!-- Modal body -->
                 <div class="modal-body">
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Mã bác sĩ</div>
-                      <input id="edit-mabs" type="text" readonly class="m-input" />
-                    </div>
-                    <div class="input-item input-item-center">
-                      <div class="title-input">Họ tên bác sĩ</div>
-                      <input id="edit-tenbs" type="text" class="m-input" oninput="kiemTraTen()"/>
-                    </div>
-                    <div class="input-item">
-                      <div class="title-input">Bằng cấp</div>
-                      <select name="bangCap" id="edit-bangCap">
-                        <option value="0">Giáo sư Y khoa</option>
-                        <option value="1">Phó Giáo sư Y khoa</option>
-                        <option value="2">Tiến sĩ Y khoa</option>
-                        <option value="3">Bác sĩ Chuyên khoa 2</option>
-                        <option value="4">Thạc sĩ Y khoa</option>
-                        <option value="5">Bác sĩ Chuyên khoa 1</option>
-                        <option value="6">Bác sĩ Đa khoa</option>
-                      </select>
+                  <input type="hidden" id="edit-resultId">
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Triệu chứng</div>
+                      <textarea id="edit-symptoms" class="m-input" rows="3" placeholder="Nhập triệu chứng của bệnh nhân"></textarea>
                     </div>
                   </div>
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Số điện thoại</div>
-                      <input id="edit-sdt" type="text" class="m-input" />
-                    </div>
-                    <div class="input-item input-item-center">
-                      <div class="title-input">Email</div>
-                      <input id="edit-email" type="email" class="m-input" oninput="kiemTraEmail()"/>
-                    </div>
-                    <div class="input-item">
-                      <div class="title-input">Giờ làm việc</div>
-                      <input id="edit-gioLamViec" type="text" class="m-input" />
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Chẩn đoán</div>
+                      <textarea id="edit-diagnosis" class="m-input" rows="2" placeholder="Nhập chẩn đoán"></textarea>
                     </div>
                   </div>
-                  <div class="row-item d-flex">
-                    <div class="input-item">
-                      <div class="title-input">Năm kinh nghiệm</div>
-                      <input id="edit-namKinhNghiem" type="text" class="m-input" />
-                    </div>
-                    <div class="input-item-center">
-                      <div class="title-input">Địa chỉ</div>
-                      <input id="edit-diaChi" type="text" class="m-input" />
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Ghi chú</div>
+                      <textarea id="edit-notes" class="m-input" rows="3" placeholder="Nhập ghi chú cho bệnh nhân"></textarea>
                     </div>
                   </div>
+                  <div class="row-item">
+                    <div class="input-item-full">
+                      <div class="title-input">Kế hoạch điều trị</div>
+                      <textarea id="edit-treatmentPlan" class="m-input" rows="3" placeholder="Nhập kế hoạch điều trị"></textarea>
+                    </div>
+                  </div>
+                </div>
 
                 <!-- Modal footer -->
                 <div
@@ -535,9 +805,8 @@
                   </button>
                   <button
                     type="button"
-                    id="btnEdit"
+                    id="btnSaveEdit"
                     class="btn btn-success"
-                    data-bs-dismiss="modal"
                   >
                     Lưu
                   </button>
@@ -545,10 +814,9 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- DIALOG XÁC NHẬN XÓA -->
-        <div class="modal fade" id="confirm-delete">
+          <!-- DIALOG XÁC NHẬN XÓA -->
+          <div class="modal fade" id="confirm-delete">
             <div class="modal-dialog modal-md">
               <div class="modal-content">
                 <!-- Modal Header -->
@@ -563,7 +831,7 @@
 
                 <!-- Modal body -->
                 <div class="modal-body">
-                  <div class="content">Bạn có chắc chắn muốn xóa</div>
+                  <div class="content">Bạn có chắc chắn muốn xóa kết quả khám này?</div>
                 </div>
                 <!-- Modal footer -->
                 <div
@@ -588,17 +856,15 @@
                 </div>
               </div>
             </div>
+          </div>
         </div>
-      <!-- ============================================================== -->
-      <!-- End Page wrapper  -->
-      <!-- ============================================================== -->
-        </div>
+      </div>
+      <footer class="footer text-center text-muted">
+        Designed and Developed by <b class="text-primary">Chung</b>
+      </footer>
     </div>
-    <footer class="footer text-center text-muted">
-      Designed and Developed by <b class="text-primary">Chung</b>
-    </footer>
     <!-- ============================================================== -->
-    <!-- End footer -->
+    <!-- End Page wrapper  -->
     <!-- ============================================================== -->
     <!-- ============================================================== -->
     <!-- End Wrapper -->
@@ -630,6 +896,10 @@
     <script src="../assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js"></script>
     <script src="../assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js"></script>
     <script src="../assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <!-- <script src="../assets/js/pages/dashboards/dashboard1.min.js"></script> -->
+
+    
   </body>
 </html>
