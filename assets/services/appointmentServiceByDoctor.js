@@ -8,6 +8,7 @@ const recordsPerPage = 10;
 var filteredData = [];
 var appointmentId = "";
 var resultIdToDelete = "";
+var selectedServices = []; // To store selected service IDs
 
 $(document).ready(function () {
   console.log(localStorage.getItem("doctorId"))
@@ -62,6 +63,21 @@ $(document).ready(function () {
   $(document).on("click", ".m-view-result", function () {
     const appointmentId = $(this).closest("tr").attr("lk-id");
     viewExaminationResult(appointmentId);
+  });
+  
+  // Gắn sự kiện cho nút chọn dịch vụ
+  $(document).on("click", ".m-services", function () {
+    const rowId = $(this).closest("tr").attr("lk-id");
+    appointmentId = rowId;
+    console.log("ID lịch khám cần thêm dịch vụ:", appointmentId);
+    
+    // Lấy danh sách dịch vụ và các dịch vụ đã chọn cho lịch khám này
+    loadServicesForAppointment(appointmentId);
+  });
+  
+  // Gắn sự kiện cho nút lưu dịch vụ
+  $(document).on("click", "#btnSaveServices", function () {
+    saveSelectedServices();
   });
   
   // Gắn sự kiện cho nút sửa kết quả khám từ modal xem
@@ -141,6 +157,97 @@ $(document).ready(function () {
   });
 });
 
+// Hàm tải danh sách dịch vụ cho lịch khám
+function loadServicesForAppointment(appointmentId) {
+  // Reset danh sách dịch vụ đã chọn
+  selectedServices = [];
+  
+  // Hiển thị loading
+  $("#services-list").html('<div class="text-center py-3">Đang tải danh sách dịch vụ...</div>');
+  
+  // Tìm thông tin lịch khám hiện tại
+  const appointment = dsLK.find(item => item.appointmentId == appointmentId);
+  
+  if (!appointment) {
+    $("#services-list").html('<div class="text-center py-3 text-danger">Không tìm thấy thông tin lịch khám!</div>');
+    return;
+  }
+  
+  // Lưu danh sách dịch vụ đã chọn (nếu có)
+  if (appointment.serviceIds && appointment.serviceIds.length > 0) {
+    selectedServices = [...appointment.serviceIds];
+  }
+  
+  // Lấy danh sách tất cả dịch vụ
+  axiosJWT.get('/api/services')
+    .then(function(response) {
+      const services = response.data;
+      
+      if (!services || services.length === 0) {
+        $("#services-list").html('<div class="text-center py-3">Không có dịch vụ nào khả dụng</div>');
+        return;
+      }
+      
+      let html = '';
+      services.forEach(service => {
+        const isSelected = selectedServices.includes(service.id);
+        html += `
+          <div class="service-item">
+            <input type="checkbox" class="service-checkbox" 
+                   id="service-${service.id}" 
+                   value="${service.id}" 
+                   ${isSelected ? 'checked' : ''}>
+            <div class="service-details">
+              <div class="service-name">${service.name}</div>
+              <div class="service-description">${service.description || 'Không có mô tả'}</div>
+            </div>
+            <div class="service-price">${formatCurrency(service.price)}</div>
+          </div>
+        `;
+      });
+      
+      $("#services-list").html(html);
+      
+      // Thêm sự kiện cho các checkbox
+      $(".service-checkbox").on("change", function() {
+        const serviceId = parseInt($(this).val());
+        if ($(this).is(":checked")) {
+          if (!selectedServices.includes(serviceId)) {
+            selectedServices.push(serviceId);
+          }
+        } else {
+          selectedServices = selectedServices.filter(id => id !== serviceId);
+        }
+        console.log("Dịch vụ đã chọn:", selectedServices);
+      });
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi lấy danh sách dịch vụ:", error);
+      $("#services-list").html('<div class="text-center py-3 text-danger">Lỗi khi tải danh sách dịch vụ!</div>');
+    });
+}
+
+// Hàm lưu các dịch vụ đã chọn cho lịch khám
+function saveSelectedServices() {
+  const data = {
+    serviceIds: selectedServices
+  };
+  
+  axiosJWT.put(`/api/appointments/${appointmentId}`, data)
+    .then(function(response) {
+      console.log("Cập nhật dịch vụ thành công:", response.data);
+      showPopup("success", "Thành công! Đã cập nhật dịch vụ cho lịch khám.");
+      $("#dialog-select-services").modal("hide");
+      
+      // Tải lại dữ liệu
+      getData();
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi cập nhật dịch vụ:", error);
+      showPopup("error", "Lỗi! Không thể cập nhật dịch vụ cho lịch khám.");
+    });
+}
+
 function getData() {
   axiosJWT
     .get(`/api/appointments/doctor/${localStorage.getItem("doctorId")}`)
@@ -212,6 +319,9 @@ function displayData(page) {
               </div>
             ` : ''}
             ${showResultButton ? `
+              <div class="m-services m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-select-services" title="Chọn dịch vụ">
+                <i class="fas fa-list-alt text-primary"></i>
+              </div>
               <div class="m-result m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-add-result" title="Thêm kết quả khám">
                 <i class="fas fa-notes-medical text-success"></i>
               </div>
@@ -331,7 +441,7 @@ function getStatusBadge(status) {
       badgeClass = "bg-success";
       statusText = "Hoàn thành";
       break;
-    case "cancelled":
+    case "canceled":
       badgeClass = "bg-danger";
       statusText = "Đã hủy";
       break;
