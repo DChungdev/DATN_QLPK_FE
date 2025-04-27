@@ -14,9 +14,15 @@
   <link href="../assets/extra-libs/c3/c3.min.css" rel="stylesheet" />
   <link href="../assets/libs/chartist/dist/chartist.min.css" rel="stylesheet" />
   <link href="../assets/extra-libs/jvector/jquery-jvectormap-2.0.2.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/content.css" />
+  <!-- Custom Main Style -->
+  <link href="../assets/css/main.css" rel="stylesheet">
+  <link href="../assets/css/notifications.css" rel="stylesheet">
+  <link href="../assets/css/chat.css" rel="stylesheet">
 
   <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
   <script src="../assets/vendor/axios.min.js"></script>
@@ -25,6 +31,10 @@
   <script src="../assets/services/thongTinBacSiDoctor.js"></script>
   <script src="../assets/services/getDoctorNameAndAvt.js"></script>
   <script src="../assets/services/mainDoctor.js"></script>
+  <script src="../assets/services/notificationService.js"></script>
+  <!-- WebSocket libraries -->
+  <script src="../assets/vendor/sockjs.min.js"></script>
+  <script src="../assets/vendor/stomp.min.js"></script>
 
 </head>
 
@@ -377,6 +387,161 @@
   <script src="../assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js"></script>
   <script src="../assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js"></script>
   <script src="../assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js"></script>
+  <!-- Notification system -->
+  <!-- <script src="../assets/js/notify.js"></script> -->
+  <script src="../assets/services/chatService.js"></script>
+  <script>
+    $(document).ready(function() {
+      initNotificationService();
+      
+      // Yêu cầu quyền thông báo ngay khi trang tải xong
+      if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
+      
+      // Add test button
+      const testButton = document.createElement('button');
+      testButton.className = 'btn btn-primary position-fixed';
+      testButton.style.bottom = '20px';
+      testButton.style.right = '20px';
+      testButton.style.zIndex = '1000';
+      testButton.textContent = 'Test Notifications';
+      testButton.onclick = function() {
+          demoNotifications();
+      };
+      document.body.appendChild(testButton);
+      
+      // WebSocket connection testing
+      const wsTestButton = document.createElement('button');
+      wsTestButton.className = 'btn btn-info position-fixed';
+      wsTestButton.style.bottom = '70px';
+      wsTestButton.style.right = '20px';
+      wsTestButton.style.zIndex = '1000';
+      wsTestButton.textContent = 'Test WebSocket';
+      wsTestButton.onclick = function() {
+          console.log("WebSocket connected status:", window.stompClient && window.stompClient.connected);
+          console.log("Current user ID:", localStorage.getItem('accountId'));
+          console.log("Current user type:", "doctor");
+          
+          if(window.stompClient && window.stompClient.connected) {
+            console.log("WebSocket subscription details:", window.stompClient.subscriptions);
+          } else {
+            alert("WebSocket không được kết nối! Đang thử kết nối lại...");
+            if(window.connectWebSocket) {
+              window.connectWebSocket();
+            }
+          }
+      };
+      document.body.appendChild(wsTestButton);
+      
+      // Message debug button
+      const msgDebugBtn = document.createElement('button');
+      msgDebugBtn.className = 'btn btn-warning position-fixed';
+      msgDebugBtn.style.bottom = '120px';
+      msgDebugBtn.style.right = '20px';
+      msgDebugBtn.style.zIndex = '1000';
+      msgDebugBtn.textContent = 'Check Messages';
+      msgDebugBtn.onclick = function() {
+          // Kiểm tra tin nhắn đã nhận
+          console.log("==== KIỂM TRA TIN NHẮN ====");
+          console.log("WebSocket connected?", window.stompClient && window.stompClient.connected);
+          
+          const accountId = localStorage.getItem('accountId');
+          console.log("Đã subscribe đến:", `/user/${accountId}/queue/messages`);
+          
+          // Hiển thị tất cả tin nhắn trong chatMessages
+          console.log("Tin nhắn đã lưu:", window.chatMessages);
+          
+          // Thử kết nối lại nếu không được kết nối
+          if(window.connectWebSocket && (!window.stompClient || !window.stompClient.connected)) {
+            console.log("Đang thử kết nối lại WebSocket...");
+            window.connectWebSocket();
+          }
+      };
+      document.body.appendChild(msgDebugBtn);
+      
+      // Send test message button
+      const sendTestBtn = document.createElement('button');
+      sendTestBtn.className = 'btn btn-danger position-fixed';
+      sendTestBtn.style.bottom = '170px';
+      sendTestBtn.style.right = '20px';
+      sendTestBtn.style.zIndex = '1000';
+      sendTestBtn.textContent = 'Gửi tin test';
+      sendTestBtn.onclick = function() {
+          // Tạo popup để nhập ID người nhận
+          const receiverId = prompt("Nhập Account ID người nhận:", "");
+          if (receiverId) {
+              // Gửi tin nhắn test
+              const currentUserId = localStorage.getItem('accountId');
+              if (!currentUserId) {
+                  alert("Bạn chưa đăng nhập hoặc không tìm thấy accountId!");
+                  return;
+              }
+              
+              const message = {
+                  content: "Tin nhắn test từ Bác sĩ (ID: " + currentUserId + ") lúc " + new Date().toLocaleTimeString(),
+                  senderId: currentUserId,
+                  receiverId: receiverId
+              };
+              
+              console.log("Đang gửi tin nhắn test:", message);
+              
+              // Gửi qua WebSocket
+              if (window.stompClient && window.stompClient.connected) {
+                  window.stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(message));
+                  alert("Đã gửi tin nhắn qua WebSocket!");
+              } else {
+                  // Gửi qua REST API
+                  axios.post('/api/chat/send', message, {
+                      headers: {
+                          'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+                      }
+                  })
+                  .then(function(response) {
+                      console.log("Gửi tin nhắn thành công:", response.data);
+                      alert("Đã gửi tin nhắn qua REST API!");
+                  })
+                  .catch(function(error) {
+                      console.error("Lỗi khi gửi tin nhắn:", error);
+                      alert("Lỗi khi gửi tin nhắn: " + (error.response ? error.response.data.message : error.message));
+                  });
+              }
+          }
+      };
+      document.body.appendChild(sendTestBtn);
+      
+      // Make WebSocket and chat messages available globally for debug
+      window.debugChat = function() {
+        return {
+          stompClient: window.stompClient,
+          chatMessages: window.chatMessages,
+          chatContacts: window.chatContacts,
+          isConnected: window.isConnected,
+          currentUserId: window.currentUserId
+        };
+      };
+      
+      // Kiểm tra kết nối WebSocket định kỳ và kết nối lại nếu cần
+      function checkWebSocketConnection() {
+        if (window.stompClient && !window.stompClient.connected && window.connectWebSocket) {
+          console.log("WebSocket mất kết nối, đang kết nối lại...");
+          window.connectWebSocket();
+        }
+      }
+      
+      // Kiểm tra kết nối mỗi 30 giây
+      setInterval(checkWebSocketConnection, 30000);
+      
+      // Initialize chat service with account ID and user type
+      const accountId = localStorage.getItem('accountId');
+      if (accountId) {
+        console.log("Initializing chat with accountId:", accountId);
+        initChatService(accountId, 'doctor');
+      } else {
+        console.error("No accountId found in localStorage!");
+      }
+    });
+  </script>
 </body>
 
 </html>

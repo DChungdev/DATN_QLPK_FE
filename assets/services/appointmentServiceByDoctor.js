@@ -916,5 +916,5 @@ function rejectAppointment() {
     .catch(function (error) {
       console.error("Lỗi khi từ chối lịch khám:", error);
       showPopup("error", "Lỗi! Không thể từ chối lịch khám.");
-    });
+  });
 }

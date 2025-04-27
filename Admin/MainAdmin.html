@@ -19,12 +19,23 @@
     <script src="../assets/vendor/axios.min.js"></script>
     <script src="../assets/services/axios.js"></script>
     <script src="../assets/services/MainAdminService.js"></script>
+    <script src="../assets/services/notificationService.js"></script>
+    <!-- WebSocket libraries -->
+    <script src="../assets/vendor/sockjs.min.js"></script>
+    <script src="../assets/vendor/stomp.min.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 <![endif]-->
+    <!-- Custom Main Style -->
+    <link href="../assets/css/main.css" rel="stylesheet">
+    <!-- Add other CSS files as needed -->
+    <!-- Dialog CSS File -->
+    <link rel="stylesheet" href="../assets/css/dialog.css" />
+    <link rel="stylesheet" href="../assets/css/notifications.css" />
+    <link rel="stylesheet" href="../assets/css/chat.css" />
 </head>
 
 <body>
@@ -498,6 +509,32 @@
     <script src="../assets/extra-libs/c3/d3.min.js"></script>
     <script src="../assets/extra-libs/c3/c3.min.js"></script>
     <script src="../assets/libs/chartist/dist/chartist.min.js"></script>
+    <!-- Notification system -->
+    <script src="../assets/js/notify.js"></script>
+    <script src="../assets/services/chatService.js"></script>
+    <script>
+        $(document).ready(function() {
+            initNotificationService();
+            
+            // Add test button
+            const testButton = document.createElement('button');
+            testButton.className = 'btn btn-primary position-fixed';
+            testButton.style.bottom = '20px';
+            testButton.style.right = '20px';
+            testButton.style.zIndex = '1000';
+            testButton.textContent = 'Test Notifications';
+            testButton.onclick = function() {
+                demoNotifications();
+            };
+            document.body.appendChild(testButton);
+            
+            // Initialize chat service with admin ID and user type
+            const adminId = localStorage.getItem('userId');
+            if (adminId) {
+              initChatService(adminId, 'admin');
+            }
+        });
+    </script>
 </body>
 
 </html>

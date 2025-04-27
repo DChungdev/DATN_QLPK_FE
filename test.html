@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        .log {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div>
+        <h3>Connection</h3>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <button onclick="checkStatus()">Check Status</button>
+        <div id="connection-status" class="log"></div>
+    </div>
+    <div>
+        <h3>Broadcast Test</h3>
+        <button onclick="sendBroadcast()">Send Broadcast</button>
+        <input type="text" id="broadcast-message" placeholder="Message" value="Hello World" />
+        <div id="broadcast-messages" class="log"></div>
+    </div>
+    <div>
+        <h3>User-specific Test</h3>
+        <input type="text" id="user-id" placeholder="User ID" value="1" />
+        <button onclick="subscribeToUser()">Subscribe</button>
+        <button onclick="sendUserMessage()">Send User Message</button>
+        <input type="text" id="user-message" placeholder="Message" value="Hello User" />
+        <div id="user-messages" class="log"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let userSubscription = null;
+
+        function logMessage(elementId, message, type = 'info') {
+            const logDiv = document.getElementById(elementId);
+            const p = document.createElement('p');
+            p.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            p.className = 'message ' + type;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            
+            // Enable debug
+            stompClient.debug = function(str) {
+                logMessage('connection-status', str, 'info');
+            };
+            
+            stompClient.connect({}, function(frame) {
+                logMessage('connection-status', 'Connected: ' + frame, 'success');
+                
+                // Subscribe to the broadcast topic
+                stompClient.subscribe('/topic/test', function(message) {
+                    logMessage('connection-status', 'Received broadcast', 'success');
+                    const messageData = JSON.parse(message.body);
+                    logMessage('broadcast-messages', 'Received: ' + messageData.content, 'success');
+                });
+            }, function(error) {
+                logMessage('connection-status', 'STOMP error: ' + error, 'error');
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                stompClient = null;
+                logMessage('connection-status', 'Disconnected', 'info');
+                
+                if (userSubscription !== null) {
+                    userSubscription = null;
+                }
+            }
+        }
+
+        function subscribeToUser() {
+            if (stompClient === null) {
+                logMessage('user-messages', 'Please connect first', 'error');
+                return;
+            }
+            
+            const userId = document.getElementById('user-id').value;
+            
+            // If already subscribed, unsubscribe first
+            if (userSubscription !== null) {
+                userSubscription.unsubscribe();
+                logMessage('user-messages', 'Unsubscribed from previous user subscription', 'info');
+            }
+            
+            // Subscribe using the destination pattern
+            userSubscription = stompClient.subscribe('/user/' + userId + '/queue/messages', function(message) {
+                logMessage('connection-status', 'Received user message', 'success');
+                try {
+                    const messageData = JSON.parse(message.body);
+                    logMessage('user-messages', 'Received for user ' + userId + ': ' + messageData.content, 'success');
+                } catch (e) {
+                    logMessage('user-messages', 'Error parsing message: ' + message.body, 'error');
+                }
+            });
+            
+            logMessage('user-messages', 'Subscribed to user messages for user ID: ' + userId, 'info');
+        }
+
+        function sendBroadcast() {
+            const message = document.getElementById('broadcast-message').value;
+            fetch(`http://localhost:8080/api/ws-test/broadcast/${message}`)
+                .then(response => response.text())
+                .then(data => {
+                    logMessage('broadcast-messages', 'API response: ' + data, 'info');
+                })
+                .catch(error => {
+                    logMessage('broadcast-messages', 'Error: ' + error, 'error');
+                });
+        }
+
+        function sendUserMessage() {
+            const userId = document.getElementById('user-id').value;
+            const message = document.getElementById('user-message').value;
+            
+            fetch(`http://localhost:8080/api/ws-test/user/${userId}/${message}`)
+                .then(response => response.text())
+                .then(data => {
+                    logMessage('user-messages', 'API response: ' + data, 'info');
+                })
+                .catch(error => {
+                    logMessage('user-messages', 'Error: ' + error, 'error');
+                });
+        }
+
+        function checkStatus() {
+            fetch('http://localhost:8080/api/ws-debug/status')
+                .then(response => response.json())
+                .then(data => {
+                    logMessage('connection-status', 'WebSocket Status: ' + JSON.stringify(data), 'info');
+                })
+                .catch(error => {
+                    logMessage('connection-status', 'Error checking status: ' + error, 'error');
+                });
+                
+            fetch('http://localhost:8080/api/ws-debug/users')
+                .then(response => response.json())
+                .then(data => {
+                    logMessage('connection-status', 'Connected Users: ' + JSON.stringify(data), 'info');
+                })
+                .catch(error => {
+                    logMessage('connection-status', 'Error checking users: ' + error, 'error');
+                });
+        }
+    </script>
+</body>
+</html>

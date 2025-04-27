@@ -34,6 +34,8 @@
   <!-- Dialog CSS File -->
   <link rel="stylesheet" href="../assets/css/dialog.css" />
   <link href="../assets/css/popup.css" rel="stylesheet" />
+  <link href="../assets/css/notifications.css" rel="stylesheet" />
+  <link href="../assets/css/chat.css" rel="stylesheet" />
 
   <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
   <script src="../assets/vendor/axios.min.js"></script>
@@ -41,6 +43,9 @@
   <script src="../assets/services/registerAppointmentServices.js"></script>
   <!-- <script src="../assets/services/dichVuIndexService.js"></script> -->
   <script src="../assets/services/thongTinBacSiIndex.js"></script>
+  <!-- WebSocket libraries -->
+  <script src="../assets/vendor/sockjs.min.js"></script>
+  <script src="../assets/vendor/stomp.min.js"></script>
 </head>
 <style>
   .content {
@@ -901,6 +906,32 @@
 
   <!-- Main JS File -->
   <script src="../assets/js/main.js"></script>
+  <script src="../assets/services/notificationService.js"></script>
+  <script src="../assets/services/chatService.js"></script>
+  <script>
+    $(document).ready(function() {
+        initNotificationService();
+        
+        // Add test button
+        const testButton = document.createElement('button');
+        testButton.className = 'btn btn-primary position-fixed';
+        testButton.style.bottom = '20px';
+        testButton.style.right = '20px';
+        testButton.style.zIndex = '1000';
+        testButton.textContent = 'Test Notifications';
+        testButton.onclick = function() {
+            demoNotifications();
+        };
+        document.body.appendChild(testButton);
+        
+        // Initialize chat service with patient ID and user type
+        const patientId = localStorage.getItem('accountId');
+        console.log(patientId);
+        if (patientId) {
+          initChatService(patientId, 'patient');
+        }
+    });
+  </script>
 
   <!-- Dialog JS File -->
   <!-- <script src="../assets/services/appointmentServiceByPatient.js"></script> -->

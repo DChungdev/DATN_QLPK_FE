@@ -51,12 +51,15 @@ $(document).ready(function () {
             } else if (userRole === 'ROLE_user') {
                 localStorage.setItem("userName", username);
                 // Lấy User ID từ API sau khi đăng nhập thành công
-                const userId = await getUserId(username, "userId");  // Dùng await để đợi hàm getUserId
-                localStorage.setItem("userId", response.data);
+                // const userId = await getUserId(username, "userId");  // Dùng await để đợi hàm getUserId
+                await getPatientId(username);
+                await getAccountId(username);
                 window.location.href = '/User/index.html'; // Chuyển hướng patient
             } else if (userRole === 'ROLE_doctor') {
                 localStorage.setItem("doctorName", username);
                 await getDoctorId(username)
+                await getAccountId(username)
+                
                 // Lấy User ID từ API sau khi đăng nhập thành công
                 // const userId = await getUserId(username, "doctorId");  // Dùng await để đợi hàm getUserId
                 
@@ -118,7 +121,16 @@ $(document).ready(function () {
                 console.error("Lỗi khi đăng ký:", error);
             });
     });
-
+    async function getAccountId(username, Id) {
+        try {
+            const response = await axiosJWT.get(`/api/auth/${username}`);
+            const accountId = response.data
+            localStorage.setItem("accountId", accountId);
+        } catch (error) {
+            console.error("Lỗi khi lấy UserId:", error);
+            throw error;  // Ném lỗi để catch ở ngoài
+        }
+    }
 
     async function getUserId(username, Id) {
         // Giả sử có một API gọi đến backend để lấy ID người dùng
@@ -137,6 +149,17 @@ $(document).ready(function () {
             const response = await axiosJWT.get(`/api/doctors/findbyUsername/${username}`);
             const doctorId = response.data.doctorId
             localStorage.setItem("doctorId", doctorId);
+        } catch (error) {
+            console.error("Lỗi khi lấy UserId:", error);
+            throw error;  // Ném lỗi để catch ở ngoài
+        }
+    }
+
+    async function getPatientId(username){
+        try {
+            const response = await axiosJWT.get(`/api/patients/findbyUsername/${username}`);
+            const userId = response.data.patientId;
+            localStorage.setItem("userId", userId);
         } catch (error) {
             console.error("Lỗi khi lấy UserId:", error);
             throw error;  // Ném lỗi để catch ở ngoài
