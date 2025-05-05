@@ -929,6 +929,28 @@
         console.log(patientId);
         if (patientId) {
           initChatService(patientId, 'patient');
+          
+          // Thêm chatbot vào danh sách contact sau khi loadChatContacts hoàn thành
+          const originalLoadChatContacts = window.loadChatContacts;
+          window.loadChatContacts = function() {
+            originalLoadChatContacts.apply(this, arguments);
+            
+            // Thêm chatbot contact
+            const chatbotContact = {
+              id: 'chatbot',
+              name: 'Chatbot Tư Vấn',
+              avatar: '../uploads/chatbot.avif',
+              unreadCount: 0,
+              lastMessage: null,
+              lastMessageTime: null
+            };
+            
+            // Thêm chatbot vào đầu danh sách
+            if (window.chatContacts) {
+              window.chatContacts.unshift(chatbotContact);
+              renderContactsList();
+            }
+          };
         }
     });
   </script>

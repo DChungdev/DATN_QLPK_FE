@@ -395,6 +395,12 @@ function sendMessage() {
         // Clear input ngay lập tức để ngăn gửi tin nhắn trùng lặp
         chatInput.value = '';
         
+        // Xử lý đặc biệt cho chatbot
+        if (activeContactId === 'chatbot') {
+            handleChatbotMessage(messageContent);
+            return;
+        }
+        
         const chatMessage = {
             content: messageContent,
             senderId: currentUserId,
@@ -489,6 +495,82 @@ function updateLocalMessageWithServerResponse(serverMessage) {
     }
 }
 
+// Handle chatbot messages
+async function handleChatbotMessage(messageContent) {
+    const OPENROUTER_API_KEY = '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';
+    const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
+    
+    // Tạo tin nhắn local cho người dùng
+    const userMessage = {
+        id: new Date().getTime(),
+        content: messageContent,
+        senderId: currentUserId,
+        receiverId: 'chatbot',
+        createdAt: new Date().toISOString(),
+        read: true,
+        _isLocalMessage: true
+    };
+    
+    // Thêm tin nhắn vào UI
+    appendMessage(userMessage);
+    scrollToBottom();
+    
+    try {
+        // Gửi yêu cầu đến OpenRouter API
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: MODEL,
+                messages: [
+                    { role: "system", content: "Bạn là trợ lý phòng khám. Hãy trả lời các câu hỏi về dịch vụ, bác sĩ, và các thông tin liên quan đến phòng khám một cách thân thiện, lịch sự và hữu ích. Trả lời hoàn toàn bằng tiếng Việt, ngắt câu, xuống dòng hợp lý" },
+                    { role: "user", content: messageContent }
+                ]
+            })
+        });
+        
+        const data = await response.json();
+        const botReply = data.choices?.[0]?.message?.content || "Xin lỗi, tôi không thể trả lời ngay lúc này.";
+        
+        // Tạo tin nhắn phản hồi từ chatbot
+        const botMessage = {
+            id: new Date().getTime() + 1,
+            content: botReply,
+            senderId: 'chatbot',
+            receiverId: currentUserId,
+            createdAt: new Date().toISOString(),
+            read: true,
+            _isLocalMessage: true
+        };
+        
+        // Thêm tin nhắn phản hồi vào UI
+        setTimeout(() => {
+            appendMessage(botMessage);
+            scrollToBottom();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error getting chatbot response:', error);
+        const errorMessage = {
+            id: new Date().getTime() + 1,
+            content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+            senderId: 'chatbot',
+            receiverId: currentUserId,
+            createdAt: new Date().toISOString(),
+            read: true,
+            _isLocalMessage: true
+        };
+        
+        setTimeout(() => {
+            appendMessage(errorMessage);
+            scrollToBottom();
+        }, 500);
+    }
+}
+
 // Load chat contacts
 function loadChatContacts() {
     let apiUrl = '';
@@ -518,7 +600,6 @@ function loadChatContacts() {
             .filter(contact => contact.accountId !== null)
             .map(contact => {
                 return {
-                    // id: currentUserType === 'patient' ? contact.doctorId : contact.patientId,
                     id: contact.accountId.toString(), // Đảm bảo ID luôn là chuỗi
                     originalId: currentUserType === 'patient' ? contact.doctorId : contact.patientId,
                     name: contact.fullName,
@@ -528,6 +609,18 @@ function loadChatContacts() {
                     lastMessageTime: null
                 };
             });
+
+            // Thêm chatbot vào đầu danh sách contact
+            const chatbotContact = {
+                id: 'chatbot',
+                name: 'Chatbot Tư Vấn',
+                avatar: '/uploads/chatbot.avif',
+                unreadCount: 0,
+                lastMessage: null,
+                lastMessageTime: null
+            };
+            chatContacts.unshift(chatbotContact);
+            
             window.chatContacts = chatContacts;
             
             // Load last messages for each contact
@@ -550,6 +643,14 @@ function loadChatContacts() {
 function loadLastMessages() {
     // For each contact, get the last message
     chatContacts.forEach(contact => {
+        // Bỏ qua chatbot vì không cần lịch sử
+        if (contact.id === 'chatbot') {
+            contact.lastMessage = "Bắt đầu trò chuyện";
+            contact.lastMessageTime = new Date().toISOString();
+            updateContactItem(contact);
+            return;
+        }
+
         getChatHistory(currentUserId, contact.id, 1)
             .then(messages => {
                 if (messages && messages.length > 0) {
@@ -804,6 +905,25 @@ function loadChatMessages(contactId) {
     const messagesContainer = document.getElementById('chatMessagesContainer');
     messagesContainer.innerHTML = '<div class="text-center p-3">Đang tải tin nhắn...</div>';
     
+    // Xử lý đặc biệt cho chatbot
+    if (contactId === 'chatbot') {
+        // Mỗi lần mở chat với chatbot sẽ bắt đầu cuộc trò chuyện mới
+        const welcomeMessage = {
+            id: new Date().getTime(),
+            content: "Xin chào! Tôi là chatbot tư vấn của phòng khám. Tôi có thể giúp gì cho bạn?",
+            senderId: 'chatbot',
+            receiverId: currentUserId,
+            createdAt: new Date().toISOString(),
+            read: true,
+            _isLocalMessage: true
+        };
+        
+        // Reset chat history cho chatbot
+        chatMessages[contactId] = [welcomeMessage];
+        renderMessages(chatMessages[contactId]);
+        return;
+    }
+    
     // Check if we have messages in memory
     if (chatMessages[contactId] && chatMessages[contactId].length > 0) {
         renderMessages(chatMessages[contactId]);
@@ -812,7 +932,6 @@ function loadChatMessages(contactId) {
         getChatHistory(currentUserId, contactId)
             .then(messages => {
                 renderMessages(messages);
-                
             })
             .catch(error => {
                 console.error('Error loading chat messages:', error);

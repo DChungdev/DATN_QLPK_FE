@@ -14,7 +14,7 @@ function initNotificationService() {
     loadNotificationSound();
     requestNotificationPermission();
     setupNotificationUI();
-    loadNotifications();
+    // loadNotifications();
     setInterval(checkNewNotifications, 30000); // Check for new notifications every 30 seconds
 }
 
@@ -591,7 +591,7 @@ $(document).ready(function() {
 // Export functions for use in other files
 window.NotificationService = {
     initNotificationService,
-    loadNotifications,
+    // loadNotifications,
     playNotificationSound,
     showDesktopNotification
 };
