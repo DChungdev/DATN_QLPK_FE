@@ -498,7 +498,7 @@ function updateLocalMessageWithServerResponse(serverMessage) {
 // Handle chatbot messages
 async function handleChatbotMessage(messageContent) {
     const OPENROUTER_API_KEY = '';
-    // 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
+   
     const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
     
     // Tạo tin nhắn local cho người dùng
