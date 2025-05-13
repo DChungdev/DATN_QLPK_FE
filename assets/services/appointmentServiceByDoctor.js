@@ -645,7 +645,7 @@ function getStatusText(status) {
     case "confirmed": return "Đã xác nhận";
     case "pending": return "Chờ xử lý";
     case "completed": return "Hoàn thành";
-    case "cancelled": return "Đã hủy";
+    case "canceled": return "Đã hủy";
     default: return "Không xác định";
   }
 }

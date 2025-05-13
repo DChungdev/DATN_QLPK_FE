@@ -326,7 +326,7 @@ function getStatusBadge(status) {
       badgeClass = "bg-success";
       statusText = "Hoàn thành";
       break;
-    case "cancelled":
+    case "canceled":
       badgeClass = "bg-danger";
       statusText = "Đã hủy";
       break;
@@ -530,7 +530,7 @@ function getStatusText(status) {
     case "confirmed": return "Đã xác nhận";
     case "pending": return "Chờ xử lý";
     case "completed": return "Hoàn thành";
-    case "cancelled": return "Đã hủy";
+    case "canceled": return "Đã hủy";
     default: return "Không xác định";
   }
 }

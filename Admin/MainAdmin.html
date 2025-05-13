@@ -383,14 +383,13 @@
                                         <thead>
                                             <tr class="border-0">
                                                 <th class="border-0 font-weight-medium">Bác sĩ</th>
-                                                <th class="border-0 font-weight-medium">Chuyên khoa</th>
+                                                <th class="border-0 font-weight-medium">Khoa</th>
                                                 <th class="border-0 font-weight-medium">Bệnh nhân</th>
-                                                <th class="border-0 font-weight-medium">Đánh giá</th>
                                             </tr>
                                         </thead>
                                         <tbody id="top-doctors">
                                             <tr>
-                                                <td colspan="4" class="text-center">Đang tải dữ liệu...</td>
+                                                <td colspan="3" class="text-center">Đang tải dữ liệu...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -426,26 +425,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Department & Service Stats -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h4 class="card-title">Số lượng bệnh nhân theo khoa</h4>
-                                <div id="department-chart" style="height: 300px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h4 class="card-title">Dịch vụ phổ biến</h4>
-                                <div id="service-chart" style="height: 300px;"></div>
                             </div>
                         </div>
                     </div>
@@ -510,30 +489,30 @@
     <script src="../assets/extra-libs/c3/c3.min.js"></script>
     <script src="../assets/libs/chartist/dist/chartist.min.js"></script>
     <!-- Notification system -->
-    <script src="../assets/js/notify.js"></script>
+    <!-- <script src="../assets/js/notify.js"></script> -->
     <script src="../assets/services/chatService.js"></script>
     <script>
-        $(document).ready(function() {
-            initNotificationService();
+        // $(document).ready(function() {
+            // initNotificationService();
             
             // Add test button
-            const testButton = document.createElement('button');
-            testButton.className = 'btn btn-primary position-fixed';
-            testButton.style.bottom = '20px';
-            testButton.style.right = '20px';
-            testButton.style.zIndex = '1000';
-            testButton.textContent = 'Test Notifications';
-            testButton.onclick = function() {
-                demoNotifications();
-            };
-            document.body.appendChild(testButton);
+            // const testButton = document.createElement('button');
+            // testButton.className = 'btn btn-primary position-fixed';
+            // testButton.style.bottom = '20px';
+            // testButton.style.right = '20px';
+            // testButton.style.zIndex = '1000';
+            // testButton.textContent = 'Test Notifications';
+            // testButton.onclick = function() {
+            //     demoNotifications();
+            // };
+            // document.body.appendChild(testButton);
             
             // Initialize chat service with admin ID and user type
-            const adminId = localStorage.getItem('userId');
-            if (adminId) {
-              initChatService(adminId, 'admin');
-            }
-        });
+            // const adminId = localStorage.getItem('userId');
+            // if (adminId) {
+            //   initChatService(adminId, 'admin');
+            // }
+        // });
     </script>
 </body>
 

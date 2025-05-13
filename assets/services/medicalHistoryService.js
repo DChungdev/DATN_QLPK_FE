@@ -224,7 +224,7 @@ function getBadgeClass(status) {
       return "badge-booked";
     case "confirmed":
       return "bg-primary";
-    case "cancelled":
+    case "canceled":
       return "bg-danger";
     case "completed":
       return "bg-success";
@@ -240,7 +240,7 @@ function getStatusText(status) {
       return "Chờ xử lý";
     case "confirmed":
       return "Đã xác nhận";
-    case "cancelled":
+    case "canceled":
       return "Đã hủy";
     case "completed":
       return "Hoàn thành";

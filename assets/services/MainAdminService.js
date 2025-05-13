@@ -492,7 +492,7 @@ function renderServiceChart() {
 }
 
 // Populate top doctors table
-function populateTopDoctors() {
+async function populateTopDoctors() {
     try {
         const tbody = $("#top-doctors");
         if (!tbody.length) {
@@ -503,15 +503,50 @@ function populateTopDoctors() {
         tbody.empty();
         
         if (doctorData.length === 0) {
-            tbody.html('<tr><td colspan="4" class="text-center">Không có dữ liệu bác sĩ</td></tr>');
+            tbody.html('<tr><td colspan="3" class="text-center">Không có dữ liệu bác sĩ</td></tr>');
             return;
         }
+
+        // Get department data
+        let departments = [];
+        try {
+            const deptResponse = await axiosJWT.get('/api/departments');
+            departments = deptResponse.data;
+        } catch (error) {
+            console.error("Error fetching departments:", error);
+        }
         
-        // Get top 5 doctors (in a real scenario, you would sort by some metric like patient count)
-        const topDoctors = [...doctorData].slice(0, 5);
+        // Get patient counts for each doctor
+        const doctorPatientCounts = await Promise.all(
+            doctorData.map(async doctor => {
+                try {
+                    const response = await axiosJWT.get(`/api/patients/getbydoctorid/${doctor.doctorId}`);
+                    // Find department name
+                    const department = departments.find(d => d.departmentId === doctor.departmentId);
+                    return {
+                        doctor,
+                        patientCount: response.data.length,
+                        departmentName: department ? department.name : 'Chưa cập nhật'
+                    };
+                } catch (error) {
+                    console.error(`Error getting patient count for doctor ${doctor.doctorId}:`, error);
+                    return {
+                        doctor,
+                        patientCount: 0,
+                        departmentName: 'Chưa cập nhật'
+                    };
+                }
+            })
+        );
         
-        topDoctors.forEach(doctor => {
-            // Create a row for each doctor
+        // Sort doctors by patient count in descending order
+        const sortedDoctors = doctorPatientCounts.sort((a, b) => b.patientCount - a.patientCount);
+        
+        // Get top 5 doctors
+        const topDoctors = sortedDoctors.slice(0, 5);
+        
+        // Populate table
+        topDoctors.forEach(({doctor, patientCount, departmentName}) => {
             const row = `
                 <tr>
                     <td>
@@ -523,44 +558,22 @@ function populateTopDoctors() {
                             </div>
                         </div>
                     </td>
-                    <td>${doctor.degree || 'Chưa cập nhật'}</td>
-                    <td>${Math.floor(Math.random() * 100)}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            ${getStarIcons(Math.random() * 2 + 3)}
-                            <span class="font-12 ms-2">${(Math.random() * 2 + 3).toFixed(1)}</span>
-                        </div>
-                    </td>
+                    <td>${departmentName}</td>
+                    <td>${patientCount}</td>
                 </tr>
             `;
             
             tbody.append(row);
         });
         
-        // Re-initialize feather icons for the stars
+        // Re-initialize feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
         }
     } catch(error) {
         console.error("Error populating top doctors:", error);
+        tbody.html('<tr><td colspan="3" class="text-center">Đã xảy ra lỗi khi tải dữ liệu</td></tr>');
     }
-}
-
-// Get star icons HTML based on rating value
-function getStarIcons(rating) {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
-    
-    let html = '';
-    for (let i = 0; i < fullStars; i++) {
-        html += '<i data-feather="star" class="text-warning" width="16" height="16"></i>';
-    }
-    
-    if (halfStar) {
-        html += '<i data-feather="star" class="text-warning" width="16" height="16"></i>';
-    }
-    
-    return html;
 }
 
 // Populate recent appointments table
@@ -618,8 +631,8 @@ function populateRecentAppointments() {
                         statusClass = 'badge bg-info';
                         statusText = 'Đang chờ';
                         break;
-                    case 'CANCELLED':
-                    case 'cancelled':
+                    case 'CANCELED':
+                    case 'canceled':
                         statusClass = 'badge bg-danger';
                         statusText = 'Đã hủy';
                         break;

@@ -97,7 +97,8 @@ function getPatientInfo() {
         })
         .catch(function (error) {
             console.error("Lỗi khi lấy thông tin bệnh nhân:", error);
-            showErrorPopup();
+            const errorMessage = error.response?.data || "Có lỗi xảy ra khi lấy thông tin bệnh nhân";
+            showErrorPopup(errorMessage);
         });
 }
 
@@ -118,7 +119,8 @@ function getAllDepartment() {
         })
         .catch(function (error) {
             console.error("Lỗi khi lấy danh sách khoa:", error);
-            showErrorPopup();
+            const errorMessage = error.response?.data || "Có lỗi xảy ra khi lấy danh sách khoa";
+            showErrorPopup(errorMessage);
         });
 }
 
@@ -139,7 +141,8 @@ function getDoctorsByDepartment(departmentId) {
         })
         .catch(function (error) {
             console.error("Lỗi khi lấy danh sách bác sĩ:", error);
-            showErrorPopup();
+            const errorMessage = error.response?.data || "Có lỗi xảy ra khi lấy danh sách bác sĩ";
+            showErrorPopup(errorMessage);
         });
 }
 
@@ -178,7 +181,8 @@ function getAvailableTimeSlots(doctorId, date) {
         })
         .catch(function (error) {
             console.error("Lỗi khi lấy khung giờ khám:", error);
-            showErrorPopup();
+            const errorMessage = error.response?.data || "Có lỗi xảy ra khi lấy khung giờ khám";
+            showErrorPopup(errorMessage);
         });
 }
 
@@ -205,19 +209,25 @@ function validateAppointmentForm() {
 
 // Hiển thị modal xác nhận
 function showConfirmationModal() {
-    const doctor = dsBacSi.find(d => d.doctorId == selectedDoctorId);
-    const department = dsKhoa.find(d => d.departmentId == doctor.departmentId);
-    $("#confirmPatientName").text(patientInfo.fullName);
-    $("#confirmPhone").text(patientInfo.phone);
-    $("#confirmDepartment").text(department.name);
-    $("#confirmDoctor").text(doctor.fullName);
-    $("#confirmDate").text(selectedDate);
-    $("#confirmTime").text(selectedTime.split('T')[1].substring(0, 5));
-    $("#confirmReason").text($("#reason").val());
-    fee = calculateFee(doctor.degree, baseFee);
-    $("#baseFee").text(fee);
-    
-    $("#confirmationModal").modal('show');
+    try{
+        const doctor = dsBacSi.find(d => d.doctorId == selectedDoctorId);
+        const department = dsKhoa.find(d => d.departmentId == doctor.departmentId);
+        $("#confirmPatientName").text(patientInfo.fullName);
+        $("#confirmPhone").text(patientInfo.phone);
+        $("#confirmDepartment").text(department.name);
+        $("#confirmDoctor").text(doctor.fullName);
+        $("#confirmDate").text(selectedDate);
+        $("#confirmTime").text(selectedTime.split('T')[1].substring(0, 5));
+        $("#confirmReason").text($("#reason").val());
+        fee = calculateFee(doctor.degree, baseFee);
+        $("#baseFee").text(fee);
+        
+        $("#confirmationModal").modal('show');
+    }
+    catch{
+        showErrorPopup("Vui lòng nhập đầy đủ thông tin!");
+    }
+
 }
 
 // Gửi yêu cầu đặt lịch
@@ -234,13 +244,12 @@ function submitAppointment() {
         .post('/api/appointments', appointmentData)
         .then(function (response) {
             showSuccessPopup("Đặt lịch khám thành công!");
-            // $("#confirmationModal").modal('hide');
-            // Reset form
             resetForm();
         })
         .catch(function (error) {
             console.error("Lỗi khi đặt lịch:", error);
-            showErrorPopup("Đặt lịch thất bại. Vui lòng thử lại!");
+            const errorMessage = error.response?.data || "Đặt lịch thất bại. Vui lòng thử lại!";
+            showErrorPopup(errorMessage);
         });
 }
 

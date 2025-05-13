@@ -276,7 +276,7 @@ function displayTodayAppointments() {
                 statusClass = 'badge bg-success';
                 statusText = 'Đã khám';
                 break;
-            case 'CANCELLED':
+            case 'CANCELED':
                 statusClass = 'badge bg-danger';
                 statusText = 'Đã hủy';
                 break;
