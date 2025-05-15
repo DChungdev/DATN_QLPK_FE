@@ -45,6 +45,7 @@
     <script src="../assets/vendor/axios.min.js"></script>
     <script src="../assets/services/axios.js"></script>
     <script src="../assets/services/authService.js"></script>
+    <script src="../assets/services/userAvatarService.js"></script>
     <script src="../assets/services/danhSachBacSi.js"></script>
 
     <!-- Main CSS File -->
@@ -109,22 +110,15 @@
           >
 
           <div class="dropdown cta-btn" style="background-color: white">
-            <!-- <button type="button" class="btn btn-getstarted" data-bs-toggle="dropdown"> -->
-          <div class="" data-bs-toggle="dropdown">
-            <img id="avatar" style="height: 35px; width: 35px;" src="../assets/img/user.png" class="rounded-circle">
-            <script>
-              $(document).ready(function () {
-                // Lấy tên người dùng từ localStorage
-                const loggedInUsername = localStorage.getItem('userName');
-                // Kiểm tra nếu có tên người dùng và cập nhật hiển thị
-                if (loggedInUsername) {
-                  $('#displayUser').text(loggedInUsername); // Cập nhật phần tử #displayUser
-                }
-              });
-            </script>
-            <span id="displayUser" class="text-primary">Chung</span>
-          </div>
-            <!-- </button> -->
+            <div class="" data-bs-toggle="dropdown">
+              <img
+                id="avatar"
+                style="height: 35px; width: 35px"
+                src="../assets/img/user.png"
+                class="rounded-circle"
+              />
+              <span id="displayUser" class="text-primary">Chung</span>
+            </div>
             <ul
               class="dropdown-menu border-0"
               style="

@@ -40,9 +40,9 @@
   <script src="../assets/libs/jquery/dist/jquery.min.js "></script>
   <script src="../assets/vendor/axios.min.js"></script>
   <script src="../assets/services/axios.js"></script>
-  <script src="../assets/services/registerAppointmentServices.js"></script>
-  <!-- <script src="../assets/services/dichVuIndexService.js"></script> -->
   <script src="../assets/services/thongTinBacSiIndex.js"></script>
+  <script src="../assets/services/authService.js"></script>
+  <script src="../assets/services/userAvatarService.js"></script>
   <!-- WebSocket libraries -->
   <script src="../assets/vendor/sockjs.min.js"></script>
   <script src="../assets/vendor/stomp.min.js"></script>
@@ -104,7 +104,12 @@
         <div class="dropdown cta-btn" style="background-color: white">
           <!-- <button type="button" class="btn btn-getstarted" data-bs-toggle="dropdown"> -->
           <div class="" data-bs-toggle="dropdown">
-            <img id="avatar" style="height: 35px; width: 35px" src="../assets/img/user.png" class="rounded-circle" />
+            <img
+              id="avatar"
+              style="height: 35px; width: 35px"
+              src="../assets/img/user.png"
+              class="rounded-circle"
+            />
             <script>
               $(document).ready(function () {
                 // Lấy tên người dùng từ localStorage
@@ -897,7 +902,6 @@
 
   <!-- Vendor JS Files -->
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <!-- <script src="../assets/vendor/jquery/jquery-3.7.1.js"></script> -->
   <script src="../assets/vendor/php-email-form/validate.js"></script>
   <script src="../assets/vendor/aos/aos.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
@@ -908,21 +912,10 @@
   <script src="../assets/js/main.js"></script>
   <script src="../assets/services/notificationService.js"></script>
   <script src="../assets/services/chatService.js"></script>
+  <script src="../assets/services/registerAppointmentServices.js"></script>
   <script>
     $(document).ready(function() {
         initNotificationService();
-        
-        // Add test button
-        // const testButton = document.createElement('button');
-        // testButton.className = 'btn btn-primary position-fixed';
-        // testButton.style.bottom = '20px';
-        // testButton.style.right = '20px';
-        // testButton.style.zIndex = '1000';
-        // testButton.textContent = 'Test Notifications';
-        // testButton.onclick = function() {
-        //     demoNotifications();
-        // };
-        // document.body.appendChild(testButton);
         
         // Initialize chat service with patient ID and user type
         const patientId = localStorage.getItem('accountId');
@@ -1044,3 +1037,5 @@
 
   });
 </script>
+
+    <script src="../assets/services/userAvatarService.js"></script>

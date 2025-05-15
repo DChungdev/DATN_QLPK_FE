@@ -43,6 +43,7 @@
     <script src="../assets/services/axios.js"></script>
     <script src="../assets/services/authService.js"></script>
     <script src="../assets/services/thongTinCaNhanService.js"></script>
+    <script src="../assets/services/userAvatarService.js"></script>
     <!-- Main CSS File -->
     <link href="../assets/css/main.css" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/popup.css" />
@@ -364,6 +365,7 @@
                   <div class="php-email-form">
                     <div class="row">
                       <div class="col-md form-group mt-3 mt-md-0">
+                        <p>Chẩn đoán</p>
                         <input
                           type="text"
                           class="form-control"
@@ -376,6 +378,7 @@
                     </div>
                     <div class="row">
                       <div class="col-md form-group mt-3">
+                        <p>Ghi chú</p>
                         <input
                           type="text"
                           class="form-control"
@@ -388,6 +391,7 @@
                     </div>
                     <div class="row">
                       <div class="col-md form-group mt-3">
+                        <p>Kế hoạch điều trị</p>
                         <textarea
                           class="form-control"
                           id="note"
@@ -435,6 +439,59 @@
             <div class="m-popup-tool">
               <div class="m-popup-undo">Xem hướng dẫn</div>
               <div class="m-popup-close"></div>
+            </div>
+          </div>
+        </div>
+        <!-- DIALOG XEM LÝ DO HỦY -->
+        <div class="modal fade" id="dialog-view-cancel">
+          <div class="modal-dialog modal-md">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Lý do hủy lịch khám</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                <div class="cancel-info-container">
+                  <div class="cancel-info-item">
+                    <div class="cancel-info-label">Người hủy:</div>
+                    <div class="cancel-info-value" id="view-cancel-by"></div>
+                  </div>
+                  <div class="cancel-info-item">
+                    <div class="cancel-info-label">Lý do hủy:</div>
+                    <div class="cancel-info-value" id="view-cancel-reason"></div>
+                  </div>
+                </div>
+              </div>
+
+              <style>
+                .cancel-info-container {
+                  padding: 15px;
+                }
+                .cancel-info-item {
+                  margin-bottom: 15px;
+                }
+                .cancel-info-label {
+                  font-weight: 600;
+                  color: #333;
+                  margin-bottom: 5px;
+                }
+                .cancel-info-value {
+                  background-color: #f8f9fa;
+                  padding: 10px;
+                  border-radius: 4px;
+                  border: 1px solid #dee2e6;
+                }
+              </style>
+
+              <!-- Modal footer -->
+              <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                  Đóng
+                </button>
+              </div>
             </div>
           </div>
         </div>

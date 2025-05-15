@@ -58,6 +58,13 @@ $(document).ready(function () {
   $(document).on("click", "#optionViewResult", function () {
     getResultAppointment();
   });
+
+  // Thêm sự kiện click cho nút xem lý do hủy
+  $(document).on("click", ".m-view-cancel", function () {
+    const cancelBy = $(this).data('cancel-by');
+    const cancelReason = $(this).data('cancel-reason');
+    viewCancelReason(cancelBy, cancelReason);
+  });
 });
 
 // Fetch appointment data with user ID from localStorage
@@ -155,16 +162,23 @@ function cancelAppointment(reason) {
   $("#btnCancel").prop("disabled", true).text("Đang xử lý...");
   
   axiosJWT
-    .put(
-      `/api/appointments/${appointmentId}/status/cancelled`,
-      { reason: "Bệnh nhân: " + reason }
+    .post(
+      `/api/appointments/${appointmentId}/cancel`,
+      { 
+        cancelReason: reason,
+        cancelBy: "patient"
+      }
     )
     .then(function (response) {
       console.log("Appointment cancelled successfully:", response.data);
       showPopup("success", "Thành công! Lịch khám đã được hủy.");
       $("#modal-confirm-cancel").modal("hide");
       $("#btnCancel").prop("disabled", false).text("Có");
-      getAppointmentData();
+      // Lấy userId từ localStorage và gọi lại API
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        getAllAppointmentsByUserId(userId);
+      }
     })
     .catch(function (error) {
       showPopup("error", "Lỗi! Không thể hủy lịch khám.");
@@ -373,6 +387,13 @@ async function displayAppointments(appointments) {
                     <i class="fas fa-times-circle me-2" style="color: rgb(255, 123, 0)"></i> Hủy lịch khám
                   </div>
                 </li>
+                <li>
+                  <div class="dropdown-item m-view-cancel" data-bs-target="#dialog-view-cancel" data-bs-toggle="modal" style="display: ${status === 'canceled' ? 'block' : 'none'}" 
+                    data-cancel-by="${appointment.cancelBy}"
+                    data-cancel-reason="${appointment.cancelReason}">
+                    <i class="fas fa-info-circle me-2" style="color: rgb(255, 193, 7)"></i> Xem lý do hủy
+                  </div>
+                </li>
               </ul>
             </span>
           </div>
@@ -392,4 +413,12 @@ async function displayAppointments(appointments) {
     // Add the card to the current row
     currentRow.append(card);
   });
+}
+
+// Hàm xem lý do hủy
+function viewCancelReason(cancelBy, cancelReason) {
+  // Hiển thị thông tin hủy
+  const cancelByText = cancelBy === "doctor" ? "Bác sĩ" : "Bệnh nhân";
+  $("#view-cancel-by").text(cancelByText);
+  $("#view-cancel-reason").text(cancelReason || "Không có lý do");
 }

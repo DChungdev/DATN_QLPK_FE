@@ -495,9 +495,70 @@ function updateLocalMessageWithServerResponse(serverMessage) {
     }
 }
 
-// Handle chatbot messages
+// Add these functions before handleChatbotMessage
+async function getDepartmentsInfo() {
+    try {
+        const response = await axiosJWT.get('/api/departments');
+        const departments = response.data;
+        return departments.map(dept => `
+            ${dept.departmentId}. ${dept.name}
+            - ${dept.description}
+        `).join('\n\n');
+    } catch (error) {
+        console.error('Error fetching departments:', error);
+        return '';
+    }
+}
+
+async function getDoctorsByDepartment(departmentId) {
+    try {
+        const response = await axiosJWT.get(`/api/doctors/findbyDepartmentId/${departmentId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching doctors:', error);
+        return [];
+    }
+}
+
+async function getDoctorBookedDates(doctorId) {
+    try {
+        const response = await axiosJWT.get(`/api/appointments/doctor/${doctorId}/dates`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching doctor dates:', error);
+        return [];
+    }
+}
+
+async function createAppointment(appointmentData) {
+    try {
+        const response = await axiosJWT.post('/api/appointments', appointmentData);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        throw error;
+    }
+}
+
+// Update appointmentState
+let appointmentState = {
+    isBooking: false,
+    step: 0,
+    data: {
+        patientId: null,
+        doctorId: null,
+        appointmentDate: null,
+        reason: null,
+        departmentId: null
+    },
+    availableDates: [], // Thêm để lưu danh sách thời gian có thể đặt
+    isConfirmed: false, // Thêm trạng thái xác nhận
+    selectedTime: null // Thêm để lưu thời gian đã chọn
+};
+
+// Update handleChatbotMessage function
 async function handleChatbotMessage(messageContent) {
-    const OPENROUTER_API_KEY = '';
+    const OPENROUTER_API_KEY = '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';
     const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
     
     // Tạo tin nhắn local cho người dùng
@@ -514,9 +575,337 @@ async function handleChatbotMessage(messageContent) {
     // Thêm tin nhắn vào UI
     appendMessage(userMessage);
     scrollToBottom();
-    
+
+    // Xử lý đặt lịch
+    if (messageContent.toLowerCase().includes('đặt lịch') || appointmentState.isBooking) {
+        if (!appointmentState.isBooking) {
+            appointmentState.isBooking = true;
+            appointmentState.step = 1;
+            appointmentState.data.patientId = localStorage.getItem('userId');
+            
+            const botMessage = {
+                id: new Date().getTime() + 1,
+                content: "Vui lòng cho biết lý do khám của bạn?",
+                senderId: 'chatbot',
+                receiverId: currentUserId,
+                createdAt: new Date().toISOString(),
+                read: true,
+                _isLocalMessage: true
+            };
+            
+            setTimeout(() => {
+                appendMessage(botMessage);
+                scrollToBottom();
+            }, 500);
+            return;
+        }
+
+        // Xử lý các bước đặt lịch
+        switch (appointmentState.step) {
+            case 1: // Nhận lý do khám và xác định khoa
+                try {
+                    const departmentsInfo = await getDepartmentsInfo();
+                    console.log(departmentsInfo);
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: MODEL,
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: `Bạn là trợ lý phân tích bệnh. Dựa vào lý do khám của bệnh nhân, hãy chọn khoa phù hợp nhất từ danh sách sau:
+
+${departmentsInfo}
+
+Chỉ trả về ID của khoa phù hợp nhất, không cần giải thích thêm, không có cái nào phù hợp thì trả về 1.`
+                                },
+                                { role: "user", content: messageContent }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const departmentId = parseInt(data.choices[0].message.content.trim());
+                    appointmentState.data.departmentId = departmentId;
+                    appointmentState.data.reason = messageContent;
+
+                    // Lấy danh sách bác sĩ của khoa
+                    const doctors = await getDoctorsByDepartment(departmentId);
+                    if (doctors.length === 0) {
+                        throw new Error('Không tìm thấy bác sĩ phù hợp');
+                    }
+
+                    // Lấy lịch đã đặt của bác sĩ đầu tiên
+                    const bookedDates = await getDoctorBookedDates(doctors[0].doctorId);
+                    appointmentState.data.doctorId = doctors[0].doctorId;
+
+                    appointmentState.step = 2;
+                    const botMessage = {
+                        id: new Date().getTime() + 1,
+                        content: "Vui lòng cho biết ngày bạn muốn khám (ví dụ: 15/4):",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+
+                    setTimeout(() => {
+                        appendMessage(botMessage);
+                        scrollToBottom();
+                    }, 500);
+                } catch (error) {
+                    console.error('Error in step 1:', error);
+                    const errorMessage = {
+                        id: new Date().getTime() + 1,
+                        content: "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+                    setTimeout(() => {
+                        appendMessage(errorMessage);
+                        scrollToBottom();
+                    }, 500);
+                    appointmentState.isBooking = false;
+                }
+                break;
+
+            case 2: // Xử lý ngày khám
+                try {
+                    const selectedDate = parseDate(messageContent);
+                    if (!selectedDate) {
+                        throw new Error('Ngày không hợp lệ');
+                    }
+
+                    // Kiểm tra xem ngày có trong tương lai không
+                    const now = new Date();
+                    if (selectedDate < now) {
+                        throw new Error('Ngày khám phải trong tương lai');
+                    }
+
+                    // Lưu ngày đã chọn
+                    appointmentState.data.appointmentDate = selectedDate;
+                    
+                    appointmentState.step = 3;
+                    const botMessage = {
+                        id: new Date().getTime() + 1,
+                        content: "Vui lòng chọn giờ khám (từ 7h đến 20h, ví dụ: 9h30):",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+
+                    setTimeout(() => {
+                        appendMessage(botMessage);
+                        scrollToBottom();
+                    }, 500);
+                } catch (error) {
+                    console.error('Error in step 2:', error);
+                    const errorMessage = {
+                        id: new Date().getTime() + 1,
+                        content: error.message || "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+                    setTimeout(() => {
+                        appendMessage(errorMessage);
+                        scrollToBottom();
+                    }, 500);
+                }
+                break;
+
+            case 3: // Xử lý giờ khám
+                try {
+                    const selectedTime = parseTime(messageContent);
+                    if (!selectedTime) {
+                        throw new Error('Giờ không hợp lệ');
+                    }
+
+                    // Kết hợp ngày và giờ đã chọn
+                    const appointmentDate = new Date(appointmentState.data.appointmentDate);
+                    appointmentDate.setHours(selectedTime.hours, selectedTime.minutes, 0, 0);
+
+                    // Kiểm tra xem thời gian này đã bị đặt chưa
+                    const bookedDates = await getDoctorBookedDates(appointmentState.data.doctorId);
+                    const isBooked = bookedDates.some(date => {
+                        const booked = new Date(date);
+                        return booked.getTime() === appointmentDate.getTime();
+                    });
+
+                    if (isBooked) {
+                        throw new Error('Thời gian này đã được đặt. Vui lòng chọn thời gian khác.');
+                    }
+
+                    // Lưu thời gian đã chọn vào state
+                    appointmentState.data.appointmentDate = appointmentDate.toISOString();
+
+                    // Nếu chưa xác nhận, hiển thị thông tin và yêu cầu xác nhận
+                    if (!appointmentState.isConfirmed) {
+                        appointmentState.step = 4;
+                        const confirmMessage = {
+                            id: new Date().getTime() + 1,
+                            content: `Vui lòng xác nhận thông tin đặt lịch:\nThời gian: ${formatDate(appointmentDate)}\nLý do: ${appointmentState.data.reason}\n\nNhập "đồng ý" hoặc "ok" để xác nhận, hoặc "hủy" để hủy đặt lịch.`,
+                            senderId: 'chatbot',
+                            receiverId: currentUserId,
+                            createdAt: new Date().toISOString(),
+                            read: true,
+                            _isLocalMessage: true
+                        };
+
+                        setTimeout(() => {
+                            appendMessage(confirmMessage);
+                            scrollToBottom();
+                        }, 500);
+                        return;
+                    }
+
+                    // Nếu đã xác nhận, tạo lịch hẹn
+                    const appointment = await createAppointment(appointmentState.data);
+                    
+                    const successMessage = {
+                        id: new Date().getTime() + 1,
+                        content: `Đặt lịch thành công!\nThời gian: ${formatDate(appointmentDate)}\nLý do: ${appointmentState.data.reason}`,
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+
+                    setTimeout(() => {
+                        appendMessage(successMessage);
+                        scrollToBottom();
+                    }, 500);
+
+                    // Reset trạng thái đặt lịch
+                    appointmentState.isBooking = false;
+                    appointmentState.step = 0;
+                    appointmentState.isConfirmed = false;
+                    appointmentState.data = {
+                        patientId: null,
+                        doctorId: null,
+                        appointmentDate: null,
+                        reason: null,
+                        departmentId: null
+                    };
+                } catch (error) {
+                    console.error('Error in step 3:', error);
+                    const errorMessage = {
+                        id: new Date().getTime() + 1,
+                        content: error.message || "Xin lỗi, có lỗi xảy ra khi đặt lịch. Vui lòng thử lại sau.",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+                    setTimeout(() => {
+                        appendMessage(errorMessage);
+                        scrollToBottom();
+                    }, 500);
+                }
+                break;
+
+            case 4: // Xử lý xác nhận đặt lịch
+                try {
+                    const response = messageContent.toLowerCase().trim();
+                    if (response === 'đồng ý' || response === 'ok') {
+                        appointmentState.isConfirmed = true;
+                        // Tạo lịch hẹn trực tiếp với thời gian đã lưu trong state
+                        const appointment = await createAppointment(appointmentState.data);
+                        
+                        const successMessage = {
+                            id: new Date().getTime() + 1,
+                            content: `Đặt lịch thành công!\nThời gian: ${formatDate(new Date(appointmentState.data.appointmentDate))}\nLý do: ${appointmentState.data.reason}`,
+                            senderId: 'chatbot',
+                            receiverId: currentUserId,
+                            createdAt: new Date().toISOString(),
+                            read: true,
+                            _isLocalMessage: true
+                        };
+
+                        setTimeout(() => {
+                            appendMessage(successMessage);
+                            scrollToBottom();
+                        }, 500);
+
+                        // Reset trạng thái đặt lịch
+                        appointmentState.isBooking = false;
+                        appointmentState.step = 0;
+                        appointmentState.isConfirmed = false;
+                        appointmentState.data = {
+                            patientId: null,
+                            doctorId: null,
+                            appointmentDate: null,
+                            reason: null,
+                            departmentId: null
+                        };
+                    } else if (response === 'hủy') {
+                        const cancelMessage = {
+                            id: new Date().getTime() + 1,
+                            content: "Đã hủy đặt lịch. Bạn có thể đặt lịch khác bằng cách nhập 'đặt lịch'.",
+                            senderId: 'chatbot',
+                            receiverId: currentUserId,
+                            createdAt: new Date().toISOString(),
+                            read: true,
+                            _isLocalMessage: true
+                        };
+
+                        setTimeout(() => {
+                            appendMessage(cancelMessage);
+                            scrollToBottom();
+                        }, 500);
+
+                        // Reset trạng thái đặt lịch
+                        appointmentState.isBooking = false;
+                        appointmentState.step = 0;
+                        appointmentState.isConfirmed = false;
+                        appointmentState.data = {
+                            patientId: null,
+                            doctorId: null,
+                            appointmentDate: null,
+                            reason: null,
+                            departmentId: null
+                        };
+                    } else {
+                        throw new Error('Vui lòng nhập "đồng ý" hoặc "hủy" để tiếp tục.');
+                    }
+                } catch (error) {
+                    console.error('Error in step 4:', error);
+                    const errorMessage = {
+                        id: new Date().getTime() + 1,
+                        content: error.message || "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.",
+                        senderId: 'chatbot',
+                        receiverId: currentUserId,
+                        createdAt: new Date().toISOString(),
+                        read: true,
+                        _isLocalMessage: true
+                    };
+                    setTimeout(() => {
+                        appendMessage(errorMessage);
+                        scrollToBottom();
+                    }, 500);
+                }
+                break;
+        }
+        return;
+    }
+
+    // Xử lý tin nhắn thông thường
     try {
-        // Gửi yêu cầu đến OpenRouter API
+        const departmentsInfo = await getDepartmentsInfo();
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -526,7 +915,50 @@ async function handleChatbotMessage(messageContent) {
             body: JSON.stringify({
                 model: MODEL,
                 messages: [
-                    { role: "system", content: "Bạn là trợ lý phòng khám. Hãy trả lời các câu hỏi về dịch vụ, bác sĩ, và các thông tin liên quan đến phòng khám một cách thân thiện, lịch sự và hữu ích. Trả lời hoàn toàn bằng tiếng Việt, ngắt câu, xuống dòng hợp lý" },
+                    { 
+                        role: "system", 
+                        content: `Bạn là trợ lý tư vấn cho "Phòng khám đa khoa Đức Chung".
+
+Thông tin cơ bản:
+- Địa chỉ: 123 Lý Thường Kiệt, Quận 10, TP.HCM
+- Hotline: 0909 123 456
+- Giờ làm việc: Từ 7h00 đến 20h00, tất cả các ngày trong tuần (bao gồm cả thứ 7, Chủ nhật)
+
+Danh sách khoa và chuyên môn:
+${departmentsInfo}
+
+Dịch vụ cung cấp:
+- Khám tổng quát
+- Khám chuyên khoa: Nội khoa, Tai Mũi Họng, Da liễu
+- Xét nghiệm máu, nước tiểu
+- Siêu âm tổng quát
+- Tiêm chủng và khám sức khỏe định kỳ
+
+Chi phí:
+- Khám thường: 100.000 VNĐ/lượt
+- Khám chuyên khoa: 150.000 VNĐ/lượt
+
+Hướng dẫn đặt lịch:
+- Cách 1: Gọi trực tiếp đến số hotline 0909 123 456
+- Cách 2: Đặt lịch qua biểu mẫu trên website chính thức
+- Cách 3: Chat với tôi để đặt lịch trực tuyến
+
+Câu hỏi thường gặp:
+
+1. Tôi có thể đặt lịch khám online không?  
+→ Có. Bạn có thể gọi hotline, điền biểu mẫu trên website hoặc chat với tôi để đặt lịch.
+
+2. Phòng khám có làm việc ngày lễ không?  
+→ Có. Phòng khám hoạt động tất cả các ngày, bao gồm lễ và cuối tuần.
+
+3. Cần mang theo gì khi đi khám?  
+→ Bạn nên mang theo CMND/CCCD, thẻ BHYT (nếu có), và kết quả khám trước đó (nếu có).
+
+4. Có khám ngoài giờ không?  
+→ Phòng khám mở cửa đến 20h mỗi ngày, nên bạn có thể đến sau giờ hành chính.
+
+Hãy trả lời người dùng một cách tự nhiên, lịch sự, rõ ràng và đúng theo thông tin trên.` 
+                    },
                     { role: "user", content: messageContent }
                 ]
             })
@@ -535,7 +967,6 @@ async function handleChatbotMessage(messageContent) {
         const data = await response.json();
         const botReply = data.choices?.[0]?.message?.content || "Xin lỗi, tôi không thể trả lời ngay lúc này.";
         
-        // Tạo tin nhắn phản hồi từ chatbot
         const botMessage = {
             id: new Date().getTime() + 1,
             content: botReply,
@@ -546,7 +977,6 @@ async function handleChatbotMessage(messageContent) {
             _isLocalMessage: true
         };
         
-        // Thêm tin nhắn phản hồi vào UI
         setTimeout(() => {
             appendMessage(botMessage);
             scrollToBottom();
@@ -569,6 +999,53 @@ async function handleChatbotMessage(messageContent) {
             scrollToBottom();
         }, 500);
     }
+}
+
+// Helper functions for appointment booking
+function parseDate(dateStr) {
+    // Hỗ trợ các định dạng: DD/MM, DD-MM, DD.MM
+    const match = dateStr.match(/(\d{1,2})[\/\-\.](\d{1,2})/);
+    if (!match) return null;
+
+    const day = parseInt(match[1]);
+    const month = parseInt(match[2]) - 1; // Tháng trong JS bắt đầu từ 0
+    const year = new Date().getFullYear();
+
+    const date = new Date(year, month, day);
+    
+    // Kiểm tra tính hợp lệ của ngày
+    if (date.getDate() !== day || date.getMonth() !== month) {
+        return null;
+    }
+
+    return date;
+}
+
+function parseTime(timeStr) {
+    // Hỗ trợ các định dạng: HHh, HHhMM, HH:MM
+    const match = timeStr.match(/(\d{1,2})(?:h|:)?(\d{2})?/);
+    if (!match) return null;
+
+    const hours = parseInt(match[1]);
+    const minutes = match[2] ? parseInt(match[2]) : 0;
+
+    // Kiểm tra tính hợp lệ của giờ
+    if (hours < 7 || hours > 20 || minutes < 0 || minutes > 59) {
+        return null;
+    }
+
+    return { hours, minutes };
+}
+
+function formatDate(date) {
+    return date.toLocaleString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // Load chat contacts

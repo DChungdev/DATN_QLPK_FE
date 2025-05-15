@@ -10,6 +10,9 @@ var appointmentId = "";
 var resultIdToDelete = "";
 var selectedServices = []; // To store selected service IDs
 
+// Biến để theo dõi trạng thái sắp xếp
+let isSortAscending = true;
+
 $(document).ready(function () {
   console.log(localStorage.getItem("doctorId"))
   //Lấy tất cả dữ liệu
@@ -135,6 +138,11 @@ $(document).ready(function () {
     exportToExcel();
   });
 
+  // Gắn sự kiện cho nút xuất PDF
+  $(document).on("click", "#btnExportPDF", function() {
+    exportToPDF();
+  });
+
   // Sự kiện khi nhập vào ô tìm kiếm
   $(".m-input-search").on("keyup", function () {
     var value = $(this).val().toLowerCase();
@@ -154,6 +162,63 @@ $(document).ready(function () {
     });
 
     refreshUI();
+  });
+
+  // Hàm sắp xếp lịch khám theo ngày
+  function sortAppointmentsByDate() {
+    const tbody = document.querySelector('#tblAppointment tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Bỏ qua hàng "Không có lịch khám nào"
+    if (rows.length === 1 && rows[0].querySelector('td').colSpan === 10) {
+        return;
+    }
+
+    // Sắp xếp mảng dsLK
+    dsLK.sort((a, b) => {
+        const dateA = new Date(a.appointmentDate);
+        const dateB = new Date(b.appointmentDate);
+        return isSortAscending ? dateA - dateB : dateB - dateA;
+    });
+
+    // Cập nhật lại filteredData nếu đang có dữ liệu lọc
+    if (filteredData.length > 0) {
+        filteredData.sort((a, b) => {
+            const dateA = new Date(a.appointmentDate);
+            const dateB = new Date(b.appointmentDate);
+            return isSortAscending ? dateA - dateB : dateB - dateA;
+        });
+    }
+
+    // Đảo ngược trạng thái sắp xếp cho lần click tiếp theo
+    isSortAscending = !isSortAscending;
+
+    // Refresh UI để hiển thị dữ liệu đã sắp xếp
+    refreshUI();
+  }
+
+  // Thêm sự kiện click cho nút sắp xếp
+  $(document).ready(function() {
+    $('.m-toolbar-sort').click(function() {
+        sortAppointmentsByDate();
+        
+        // Thay đổi icon để thể hiện trạng thái sắp xếp
+        const icon = $(this).find('i');
+        if (isSortAscending) {
+            icon.removeClass('fa-sort-amount-down').addClass('fa-sort-amount-up');
+        } else {
+            icon.removeClass('fa-sort-amount-up').addClass('fa-sort-amount-down');
+        }
+    });
+  });
+
+  // Gắn sự kiện cho nút xem bệnh án
+  $(document).on("click", ".m-medical-record", function () {
+    const appointmentId = $(this).closest("tr").attr("lk-id");
+    const appointment = dsLK.find(item => item.appointmentId == appointmentId);
+    if (appointment) {
+      loadMedicalRecord(appointment);
+    }
   });
 });
 
@@ -329,6 +394,9 @@ function displayData(page) {
             ${showViewResultButton ? `
               <div class="m-view-result m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-view-result" title="Xem kết quả khám">
                 <i class="fas fa-file-medical-alt text-info"></i>
+              </div>
+              <div class="m-medical-record m-tool-icon" data-bs-toggle="modal" data-bs-target="#dialog-medical-record" title="Xem bệnh án">
+                <i class="fas fa-notes-medical text-primary"></i>
               </div>
             ` : ''}
           </div>
@@ -917,4 +985,123 @@ function rejectAppointment() {
       console.error("Lỗi khi từ chối lịch khám:", error);
       showPopup("error", "Lỗi! Không thể từ chối lịch khám.");
   });
+}
+
+// Hàm tải và hiển thị thông tin bệnh án
+function loadMedicalRecord(appointment) {
+  // Lấy thông tin bệnh nhân
+  axiosJWT.get(`/api/patients/${appointment.patientId}`)
+    .then(function(response) {
+      const patient = response.data;
+      // Hiển thị thông tin bệnh nhân
+      $("#patient-name").text(patient.fullName || "Không có thông tin");
+      $("#patient-dob").text(formatDate(patient.dateOfBirth) || "Không có thông tin");
+      $("#patient-gender").text(patient.gender || "Không có thông tin");
+      $("#patient-phone").text(patient.phone || "Không có thông tin");
+      $("#patient-address").text(patient.address || "Không có thông tin");
+
+      // Hiển thị thông tin lịch khám
+      $("#appointment-date").text(formatDateTime(appointment.appointmentDate) || "Không có thông tin");
+      $("#appointment-reason").text(appointment.reason || "Không có thông tin");
+      $("#appointment-services").text(formatServices(appointment.serviceIds) || "Không có thông tin");
+
+      // Lấy thông tin bác sĩ
+      return axiosJWT.get(`/api/doctors/${appointment.doctorId}`);
+    })
+    .then(function(response) {
+      const doctor = response.data;
+      $("#doctor-name").text(doctor.fullName || "Không có thông tin");
+
+      // Lấy kết quả khám
+      return axiosJWT.get(`/api/medical-results/appointment/${appointment.appointmentId}`);
+    })
+    .then(function(response) {
+      const result = response.data;
+      if (result) {
+        $("#examination-symptoms").text(result.symptoms || "Không có thông tin");
+        $("#examination-diagnosis").text(result.diagnosis || "Không có thông tin");
+        $("#examination-notes").text(result.notes || "Không có thông tin");
+        $("#examination-treatment").text(result.treatmentPlan || "Không có thông tin");
+      } else {
+        $("#examination-symptoms").text("Không có thông tin");
+        $("#examination-diagnosis").text("Không có thông tin");
+        $("#examination-notes").text("Không có thông tin");
+        $("#examination-treatment").text("Không có thông tin");
+      }
+    })
+    .catch(function(error) {
+      console.error("Lỗi khi tải thông tin bệnh án:", error);
+      showPopup("error", "Lỗi! Không thể tải thông tin bệnh án.");
+    });
+}
+
+// Hàm format ngày tháng
+function formatDate(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+// Hàm xuất PDF
+async function exportToPDF() {
+  try {
+    // Hiển thị loading
+    showPopup("info", "Đang tạo file PDF...");
+
+    // Lấy nội dung cần xuất
+    const content = document.querySelector("#dialog-medical-record .modal-body");
+    
+    // Tạo canvas từ nội dung
+    const canvas = await html2canvas(content, {
+      scale: 2, // Tăng độ phân giải
+      useCORS: true, // Cho phép tải ảnh từ domain khác
+      logging: false, // Tắt log
+      windowWidth: content.scrollWidth,
+      windowHeight: content.scrollHeight
+    });
+
+    // Tạo PDF
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Thêm logo và tiêu đề
+    pdf.setFontSize(20);
+    pdf.text("BỆNH ÁN", 105, 20, { align: 'center' });
+    
+    // Thêm thông tin bệnh viện
+    pdf.setFontSize(12);
+    pdf.text("BỆNH VIỆN ĐA KHOA", 105, 30, { align: 'center' });
+    
+    // Thêm ngày xuất
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('vi-VN');
+    pdf.setFontSize(10);
+    pdf.text(`Ngày xuất: ${dateStr}`, 190, 20, { align: 'right' });
+
+    // Thêm nội dung
+    pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 40, imgWidth, imgHeight);
+
+    // Thêm chữ ký
+    const pageHeight = pdf.internal.pageSize.height;
+    pdf.setFontSize(10);
+    pdf.text("Chữ ký bác sĩ", 50, pageHeight - 20);
+    pdf.text("Chữ ký bệnh nhân", 150, pageHeight - 20);
+
+    // Xuất file
+    const patientName = $("#patient-name").text();
+    const fileName = `BenhAn_${patientName}_${dateStr}.pdf`;
+    pdf.save(fileName);
+
+    // Thông báo thành công
+    showPopup("success", "Xuất file PDF thành công!");
+  } catch (error) {
+    console.error("Lỗi khi xuất PDF:", error);
+    showPopup("error", "Lỗi! Không thể xuất file PDF.");
+  }
 }

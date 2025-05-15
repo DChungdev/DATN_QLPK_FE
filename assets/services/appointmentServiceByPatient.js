@@ -127,7 +127,7 @@ function cancelAppointment(reason) {
     .prop("disabled", true)
     .text("Đang xử lý...");
   axiosJWT
-  .put(
+  .post(
     `/api/v1/Appointments/cancel/${lichKham.lichKhamId}`,
     JSON.stringify("Bệnh nhân: " + reason),
     {

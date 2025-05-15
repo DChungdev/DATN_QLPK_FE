@@ -152,6 +152,12 @@ function getData() {
     .get(`/api/appointments`)
     .then(function (response) {
       dsLK = response.data;
+      // Sắp xếp lịch khám theo thời gian gần nhất
+      dsLK.sort((a, b) => {
+        const dateA = new Date(a.appointmentDate);
+        const dateB = new Date(b.appointmentDate);
+        return dateB - dateA; // Sắp xếp giảm dần (mới nhất lên đầu)
+      });
       console.log("Dữ liệu lịch khám từ API:", dsLK);
       if (dsLK && dsLK.length > 0) {
         refreshUI();

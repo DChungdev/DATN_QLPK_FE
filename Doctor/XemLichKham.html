@@ -35,6 +35,9 @@
     <![endif]-->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Thêm thư viện jsPDF và html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
 
   <body>
@@ -286,6 +289,9 @@
               />
             </div>
             <div class="m-toolbar-actionbar" title="Tải xuống">
+              <div class="m-toolbar-sort m-toolbar-icon" title="Sắp xếp theo ngày gần nhất">
+                <i class="fas fa-sort-amount-down" style="color: #35a9d0"></i>
+              </div>
               <div class="m-toolbar-export m-toolbar-icon">
                 <i class="fas fa-download" style="color: #35a9d0"></i>
               </div>
@@ -868,18 +874,11 @@
 
                 <!-- Modal footer -->
                 <div class="modal-footer" style="background: rgb(232, 232, 232)">
-                  <button
-                    type="button"
-                    class="btn btn-light"
-                    data-bs-dismiss="modal"
-                  >
+                  <button type="button" id="btnExportPDF" class="btn btn-primary me-2">
+                    <i class="fas fa-file-pdf me-2"></i>Xuất PDF
+                  </button>
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">
                     Đóng
-                  </button>
-                  <button type="button" id="view-result-edit-btn" class="btn btn-primary" data-result-id="">
-                    Sửa
-                  </button>
-                  <button type="button" id="view-result-delete-btn" class="btn btn-danger" data-result-id="">
-                    Xóa
                   </button>
                 </div>
               </div>
@@ -1204,6 +1203,149 @@
                   </button>
                   <button type="button" id="btnSaveServices" class="btn btn-success">
                     Lưu dịch vụ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIALOG MEDICAL RECORD -->
+          <div class="modal fade" id="dialog-medical-record">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Bệnh án</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  <!-- Thông tin bệnh nhân -->
+                  <div class="medical-section">
+                    <div class="section-title">Thông tin bệnh nhân</div>
+                    <div class="patient-info">
+                      <div class="info-row">
+                        <div class="info-label">Họ tên:</div>
+                        <div class="info-value" id="patient-name"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Ngày sinh:</div>
+                        <div class="info-value" id="patient-dob"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Giới tính:</div>
+                        <div class="info-value" id="patient-gender"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Số điện thoại:</div>
+                        <div class="info-value" id="patient-phone"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Địa chỉ:</div>
+                        <div class="info-value" id="patient-address"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Thông tin lịch khám -->
+                  <div class="medical-section">
+                    <div class="section-title">Thông tin lịch khám</div>
+                    <div class="appointment-info">
+                      <div class="info-row">
+                        <div class="info-label">Ngày khám:</div>
+                        <div class="info-value" id="appointment-date"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Lý do khám:</div>
+                        <div class="info-value" id="appointment-reason"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Dịch vụ:</div>
+                        <div class="info-value" id="appointment-services"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Kết quả khám -->
+                  <div class="medical-section">
+                    <div class="section-title">Kết quả khám</div>
+                    <div class="examination-info">
+                      <div class="info-row">
+                        <div class="info-label">Triệu chứng:</div>
+                        <div class="info-value" id="examination-symptoms"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Chẩn đoán:</div>
+                        <div class="info-value" id="examination-diagnosis"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Ghi chú:</div>
+                        <div class="info-value" id="examination-notes"></div>
+                      </div>
+                      <div class="info-row">
+                        <div class="info-label">Kế hoạch điều trị:</div>
+                        <div class="info-value" id="examination-treatment"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Bác sĩ chẩn đoán -->
+                  <div class="medical-section">
+                    <div class="section-title">Bác sĩ chẩn đoán</div>
+                    <div class="doctor-info">
+                      <div class="info-row">
+                        <div class="info-label">Bác sĩ:</div>
+                        <div class="info-value" id="doctor-name"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <style>
+                  .medical-section {
+                    margin-bottom: 25px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid #eee;
+                  }
+                  .medical-section:last-child {
+                    border-bottom: none;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                  }
+                  .section-title {
+                    font-weight: 600;
+                    color: #28a745;
+                    margin-bottom: 15px;
+                    font-size: 1.1rem;
+                  }
+                  .info-row {
+                    display: flex;
+                    margin-bottom: 10px;
+                  }
+                  .info-label {
+                    width: 150px;
+                    font-weight: 500;
+                    color: #666;
+                  }
+                  .info-value {
+                    flex: 1;
+                    color: #333;
+                  }
+                  .patient-info, .appointment-info, .examination-info, .doctor-info {
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 6px;
+                  }
+                </style>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="background: rgb(232, 232, 232)">
+                  <button type="button" id="btnExportPDF" class="btn btn-primary me-2">
+                    <i class="fas fa-file-pdf me-2"></i>Xuất PDF
+                  </button>
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    Đóng
                   </button>
                 </div>
               </div>

@@ -30,7 +30,7 @@ $(document).ready(function () {
 
             } catch (error) {
                 console.error("Lỗi khi upload file:", error);
-                showErrorPopup();
+                showErrorPopup(error);
                 return;  // Nếu upload file thất bại, không tiếp tục gửi yêu cầu cập nhật bệnh nhân
             }
         }
@@ -66,10 +66,9 @@ $(document).ready(function () {
 
             console.log('Cập nhật thông tin thành công:', updateResponse);
             getData();
-
             showSuccessPopup();
         } catch (error) {
-            showErrorPopup();
+            showErrorPopup(error);
             console.error("Lỗi khi cập nhật thông tin bệnh nhân:", error);
         }
     });
@@ -90,7 +89,7 @@ $(document).ready(function () {
                 showSuccessPopup();
             })
             .catch(function (error) {
-                showErrorPopup();
+                showErrorPopup(error);
             });
     });
 
@@ -111,7 +110,6 @@ function checkConfirm() {
 function getData() {
     var userName = localStorage.getItem("userName");
     console.log(userName);
-    // $('#hotenHeader').text(localStorage.getItem(loggedInUsername));
     axiosJWT
         .get(`/api/patients/findbyUsername/${userName}`)
         .then(function (response) {
@@ -119,10 +117,9 @@ function getData() {
             console.log(bn);
             localStorage.setItem("userId", bn.patientId);
             display();
-            // getAvata();
         })
         .catch(function (error) {
-            showErrorPopup();
+            showErrorPopup(error);
             console.error("Lỗi không tìm được:", error);
         });
 }
@@ -173,8 +170,22 @@ function display() {
 //         "email": "lethib@example.com",
 //         "diaChi": "456 Hai Ba Trung, Hanoi",
 //         "tienSuBenhLy": "Tiền sử tiểu đường"
-function showErrorPopup() {
+function showErrorPopup(errorMessage = "Có lỗi xảy ra!") {
     const errorPopup = document.getElementById("error-popup");
+    const errorText = errorPopup.querySelector(".m-popup-text-error span");
+    
+    // Xử lý errorMessage có thể là string hoặc object
+    let displayMessage = errorMessage;
+    if (typeof errorMessage === 'object') {
+        // Nếu là response từ server
+        if (errorMessage.response?.data) {
+            displayMessage = errorMessage.response.data;
+        } else if (errorMessage.message) {
+            displayMessage = errorMessage.message;
+        }
+    }
+    
+    errorText.textContent = displayMessage;
     errorPopup.style.visibility = "visible";
 
     // Ẩn popup sau 3 giây
@@ -187,17 +198,11 @@ function hideErrorPopup() {
     errorPopup.style.visibility = "hidden";
 }
 function showSuccessPopup() {
-    // Hiển thị popup
-    const popup = document.getElementById("success-popup");
-    popup.style.visibility = "visible";  // Hoặc có thể dùng popup.classList.add('visible');
+    const successPopup = document.getElementById("success-popup");
+    successPopup.style.visibility = "visible";
 
-    // Tự động ẩn popup sau 3 giây (3000ms)
+    // Ẩn popup sau 3 giây
     setTimeout(() => {
-        closePopup();
+        successPopup.style.visibility = "hidden";
     }, 3000);
-}
-
-function closePopup() {
-    const popup = document.getElementById("success-popup");
-    popup.style.visibility = "hidden";  // Ẩn popup
 }

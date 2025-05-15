@@ -35,18 +35,23 @@ $(document).ready(function () {
     getAllDepartment();
     
     // Sự kiện khi chọn khoa
-    $("#department").change(function() {
+    $("#department").on('change', function() {
+        console.log("Department change event triggered");
         const departmentId = $(this).val();
+        console.log("Department changed to:", departmentId);
         if (departmentId) {
+            console.log("Calling getDoctorsByDepartment");
             getDoctorsByDepartment(departmentId);
         } else {
+            console.log("No department selected, clearing doctor select");
             $("#doctor").empty().append('<option value="">Chọn bác sĩ</option>');
         }
     });
     
     // Sự kiện khi chọn bác sĩ
-    $("#doctor").change(function() {
+    $("#doctor").on('change', function() {
         selectedDoctorId = $(this).val();
+        console.log("Doctor changed to:", selectedDoctorId);
         if (selectedDoctorId) {
             // Reset các trường liên quan đến ngày giờ
             $("#appointment-date").val('');
@@ -56,27 +61,29 @@ $(document).ready(function () {
     });
     
     // Sự kiện khi chọn ngày
-    $("#appointment-date").change(function() {
+    $("#appointment-date").on('change', function() {
         selectedDate = $(this).val();
+        console.log("Date changed to:", selectedDate);
         if (selectedDate && selectedDoctorId) {
             getAvailableTimeSlots(selectedDoctorId, selectedDate);
         }
     });
     
     // Sự kiện khi chọn giờ
-    $("#appointment-time").change(function() {
+    $("#appointment-time").on('change', function() {
         selectedTime = $(this).val();
+        console.log("Time changed to:", selectedTime);
     });
     
     // Sự kiện khi click nút đặt lịch
-    $("#btnDatLich").click(function() {
+    $("#btnDatLich").on('click', function() {
         if (validateAppointmentForm()) {
             showConfirmationModal();
         }
     });
     
     // Sự kiện khi xác nhận đặt lịch
-    $("#confirmAppointmentBtn").click(function() {
+    $("#confirmAppointmentBtn").on('click', function() {
         submitAppointment();
     });
 });
@@ -126,21 +133,50 @@ function getAllDepartment() {
 
 // Lấy danh sách bác sĩ theo khoa
 function getDoctorsByDepartment(departmentId) {
+    console.log("getDoctorsByDepartment called with departmentId:", departmentId);
+    if (!departmentId) {
+        console.log("No departmentId provided");
+        return;
+    }
+
+    console.log("Making API call to get doctors...");
     axiosJWT
-        .get(`api/doctors/findbyDepartmentId/${departmentId}`)
+        .get(`/api/doctors/findbyDepartmentId/${departmentId}`)
         .then(function (response) {
+            console.log("API call successful");
+            console.log("API response:", response.data);
+            if (!response.data || !Array.isArray(response.data)) {
+                console.error("Invalid response data format");
+                return;
+            }
+            
             dsBacSi = response.data;
             const select = $("#doctor");
+            if (!select.length) {
+                console.error("Doctor select element not found");
+                return;
+            }
+
             select.empty().append('<option value="">Chọn bác sĩ</option>');
             dsBacSi.forEach((item) => {
+                if (!item.doctorId || !item.fullName) {
+                    console.warn("Invalid doctor data:", item);
+                    return;
+                }
                 const option = document.createElement("option");
                 option.value = item.doctorId;
                 option.textContent = item.fullName;
                 select.append(option);
             });
+            console.log("Updated doctor select with", dsBacSi.length, "doctors");
         })
         .catch(function (error) {
-            console.error("Lỗi khi lấy danh sách bác sĩ:", error);
+            console.error("Error fetching doctors:", error);
+            console.error("Error details:", {
+                message: error.message,
+                response: error.response,
+                status: error.response?.status
+            });
             const errorMessage = error.response?.data || "Có lỗi xảy ra khi lấy danh sách bác sĩ";
             showErrorPopup(errorMessage);
         });
