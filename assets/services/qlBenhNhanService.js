@@ -120,12 +120,13 @@ $(document).ready(function () {
                         return axiosJWT.post(`/api/patients`, newPatient);
                     })
                     .then(function (response) {
+                        notificationService.showSuccess("Thêm bệnh nhân thành công!");
                         console.log("Thêm thành công:", response.data);
                         getData();
                         refreshUI();
                     })
                     .catch(function (error) {
-                        showErrorPopup();
+                        notificationService.showError(error.response.data);
                         console.error("Lỗi khi thêm:", error);
                     });
             } else {
@@ -133,12 +134,13 @@ $(document).ready(function () {
                 axiosJWT
                     .post(`/api/patients`, newPatient)
                     .then(function (response) {
+                        notificationService.showSuccess("Thêm bệnh nhân thành công!");
                         console.log("Thêm thành công:", response.data);
                         getData();
                         refreshUI();
                     })
                     .catch(function (error) {
-                        showErrorPopup();
+                        notificationService.showError(error.response.data);
                         console.error("Lỗi khi thêm:", error);
                     });
             }
@@ -182,10 +184,10 @@ $(document).ready(function () {
                         console.log("Cập nhật thành công:", response.data);
                         getData();
                         refreshUI();
-                        showSuccessPopup();
+                        notificationService.showSuccess("Sửa bệnh nhân thành công!");
                     })
                     .catch(function (error) {
-                        showErrorPopup();
+                        notificationService.showError(error.response.data);
                         console.error("Lỗi khi cập nhật:", error);
                     });
             } else {
@@ -196,10 +198,11 @@ $(document).ready(function () {
                         console.log("Cập nhật thành công:", response.data);
                         getData();
                         refreshUI();
-                        showSuccessPopup();
+                        notificationService.showSuccess("Sửa bệnh nhân thành công!");
                     })
                     .catch(function (error) {
-                        showErrorPopup();
+                        console.log(error)
+                        notificationService.showError(error.response.data);
                         console.error("Lỗi khi cập nhật:", error);
                     });
             }
@@ -219,17 +222,19 @@ $(document).ready(function () {
                 .delete(`/api/patients/${bnID}`)
                 .then(function (response) {
                     console.log("Xóa thành công:", response.data);
+                    notificationService.showSuccess("Xóa bệnh nhân thành công!");
                     getData(); // Tải lại dữ liệu sau khi cập nhật
                 })
                 .catch(function (error) {
-                    showErrorPopup();
+                    notificationService.showError("Lỗi khi xóa!");
                     console.error("Lỗi khi xóa:", error);
                 });
         });
-        // //Xử lý sự kiện khi nhấn nút Export
-        // $(".m-toolbar-export").click(function () {
-        //     exportToExcelPatient();
-        // });
+
+        // Add event listener for export button
+        $("#exportButton").click(function() {
+            exportToExcel();
+        });
     // });
     // // Hàm xử lý khi ấn nút xuất file Excel
     // function exportToExcelPatient() {
@@ -392,6 +397,7 @@ function hideErrorPopup() {
 // }
 
 function showSuccessPopup() {
+    console.log("Chạyạy")
     // Hiển thị popup
     const popup = document.getElementById("success-popup");
     popup.style.visibility = "visible";  // Hoặc có thể dùng popup.classList.add('visible');
@@ -489,5 +495,47 @@ function fillEditModal(benhNhan) {
         $("#preview-image-edit").attr("src", benhNhan.imageUrl);
     } else {
         $("#preview-image-edit").attr("src", "../assets/img/default-avatar.png");
+    }
+}
+
+// Function to export data to Excel
+function exportToExcel() {
+    try {
+        const dataToExport = window.filteredData.length > 0 ? window.filteredData : window.dsBN;
+        
+        if (!dataToExport || dataToExport.length === 0) {
+            notificationService.showError("Không có dữ liệu để xuất");
+            return;
+        }
+        
+        const formattedData = dataToExport.map(item => ({
+            "Mã bệnh nhân": item.patientId,
+            "Họ tên": item.fullName || "Chưa có",
+            "Giới tính": item.gender || "Chưa có",
+            "Ngày sinh": formatDate(item.dateOfBirth) || "Chưa có",
+            "Số điện thoại": item.phone || "Chưa có",
+            "Địa chỉ": item.address || "Chưa có"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "DanhSachBenhNhan");
+        
+        // Set column widths
+        const wscols = [
+            { wch: 15 }, // Mã bệnh nhân
+            { wch: 30 }, // Họ tên
+            { wch: 10 }, // Giới tính
+            { wch: 15 }, // Ngày sinh
+            { wch: 15 }, // Số điện thoại
+            { wch: 40 }  // Địa chỉ
+        ];
+        worksheet['!cols'] = wscols;
+        
+        XLSX.writeFile(workbook, "DanhSachBenhNhan.xlsx");
+        notificationService.showSuccess("Xuất dữ liệu thành công");
+    } catch (error) {
+        console.error("Lỗi khi xuất dữ liệu:", error);
+        notificationService.showError("Không thể xuất dữ liệu");
     }
 }

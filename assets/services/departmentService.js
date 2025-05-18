@@ -7,6 +7,7 @@ const departmentService = {
             return response.data;
         } catch (error) {
             console.error('Error getting departments:', error);
+            notificationService.showError("Lỗi! Không thể lấy danh sách khoa.");
             throw error;
         }
     },
@@ -18,6 +19,7 @@ const departmentService = {
             return response.data;
         } catch (error) {
             console.error('Error getting department:', error);
+            notificationService.showError("Lỗi! Không thể lấy thông tin khoa.");
             throw error;
         }
     },
@@ -29,6 +31,7 @@ const departmentService = {
             return response.data;
         } catch (error) {
             console.error('Error creating department:', error);
+            notificationService.showError("Lỗi! Không thể tạo khoa.");
             throw error;
         }
     },
@@ -40,6 +43,7 @@ const departmentService = {
             return response.data;
         } catch (error) {
             console.error('Error updating department:', error);
+            notificationService.showError("Lỗi! Không thể cập nhật khoa.");
             throw error;
         }
     },
@@ -51,6 +55,7 @@ const departmentService = {
             return response.data;
         } catch (error) {
             console.error('Error deleting department:', error);
+            notificationService.showError("Lỗi! Không thể xóa khoa.");
             throw error;
         }
     }
@@ -58,3 +63,34 @@ const departmentService = {
 
 // Export the service
 window.departmentService = departmentService;
+
+$(document).ready(() => {
+    showSuccessNotification("Chạy");
+})
+
+// Function to show success notification
+function showSuccessNotification(message) {
+    console.log("Chay")
+    const successPopup = document.getElementById('success-popup');
+    const successText = successPopup.querySelector('.m-popup-text-success span');
+    successText.textContent = message;
+    successPopup.style.display = 'block';
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      successPopup.style.display = 'none';
+    }, 3000);
+}
+
+// Function to show error notification
+function showErrorNotification(message) {
+    const errorPopup = document.getElementById('error-popup');
+    const errorText = errorPopup.querySelector('.m-popup-text-error span');
+    errorText.textContent = message;
+    errorPopup.style.display = 'block';
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      errorPopup.style.display = 'none';
+    }, 3000);
+}

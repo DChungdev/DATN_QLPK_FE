@@ -77,12 +77,13 @@ $(document).ready(function () {
           return axiosJWT.post(`/api/doctors`, newDoctor);
         })
         .then(function (response) {
+          notificationService.showSuccess("Thêm bác sĩ thành công!");
           console.log("Thêm thành công:", response.data);
           getData();
           refreshUI();
         })
         .catch(function (error) {
-          showErrorPopup();
+          notificationService.showError(error.response?.data || "Không thể thêm bác sĩ");
           console.error("Lỗi khi thêm:", error);
         });
     } else {
@@ -90,12 +91,13 @@ $(document).ready(function () {
       axiosJWT
         .post(`/api/doctors`, newDoctor)
         .then(function (response) {
+          notificationService.showSuccess("Thêm bác sĩ thành công!");
           console.log("Thêm thành công:", response.data);
           getData();
           refreshUI();
         })
         .catch(function (error) {
-          showErrorPopup();
+          notificationService.showError(error.response?.data || "Không thể thêm bác sĩ");
           console.error("Lỗi khi thêm:", error);
         });
     }
@@ -136,13 +138,13 @@ $(document).ready(function () {
           return axiosJWT.put(`/api/doctors/${bsID}`, updatedDoctor);
         })
         .then(function (response) {
+          notificationService.showSuccess("Cập nhật bác sĩ thành công!");
           console.log("Cập nhật thành công:", response.data);
           getData();
           refreshUI();
-          showSuccessPopup();
         })
         .catch(function (error) {
-          showErrorPopup();
+          notificationService.showError(error.response?.data || "Không thể cập nhật bác sĩ");
           console.error("Lỗi khi cập nhật:", error);
         });
     } else {
@@ -150,13 +152,13 @@ $(document).ready(function () {
       axiosJWT
         .put(`/api/doctors/${bsID}`, updatedDoctor)
         .then(function (response) {
+          notificationService.showSuccess("Cập nhật bác sĩ thành công!");
           console.log("Cập nhật thành công:", response.data);
           getData();
           refreshUI();
-          showSuccessPopup();
         })
         .catch(function (error) {
-          showErrorPopup();
+          notificationService.showError(error.response?.data || "Không thể cập nhật bác sĩ");
           console.error("Lỗi khi cập nhật:", error);
         });
     }
@@ -167,19 +169,20 @@ $(document).ready(function () {
     const doctorId = $(this).closest("tr").attr("bs-id");
     bsID = doctorId;
     console.log(bsID);
-    const bacSi = dsBS.find((bs) => bs.doctorId === doctorId); // Tìm bệnh nhân trong danh sách
+    const bacSi = dsBS.find((bs) => bs.doctorId === doctorId); // Tìm bác sĩ trong danh sách
   });
 
   $("#btnDelete").click(function () {
     axiosJWT
       .delete(`/api/doctors/${bsID}`)
       .then(function (response) {
+        notificationService.showSuccess("Xóa bác sĩ thành công!");
         console.log("Xóa thành công:", response.data);
         getData(); // Tải lại dữ liệu sau khi cập nhật
         refreshUI();
       })
       .catch(function (error) {
-        showErrorPopup();
+        notificationService.showError(error.response?.data || "Không thể xóa bác sĩ");
         console.error("Lỗi khi xóa:", error);
       });
   });
@@ -254,6 +257,11 @@ $(document).ready(function () {
     const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
     imageModal.show();
   });
+
+  // Add event listener for export button
+  $("#exportButton").click(function() {
+    exportToExcel();
+  });
 });
 
 function filterByDate() {
@@ -289,15 +297,16 @@ function getData() {
     .get(`/api/doctors`)
     .then(function (response) {
       dsBS = response.data;
-      console.log("Dữ liệu bác sĩ từ API:", dsBS); // Debug log
-      if (dsBS && dsBS.length > 0) {
-        refreshUI();
-      } else {
-        console.log("Không có dữ liệu bác sĩ"); // Debug log
-      }
+      filteredData = dsBS; // Khởi tạo filteredData với toàn bộ dữ liệu
+      console.log(dsBS);
+      refreshUI();
     })
     .catch(function (error) {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      notificationService.showError("Không thể tải danh sách bác sĩ");
+      console.error("Lỗi không tìm được:", error);
+      dsBS = [];
+      filteredData = [];
+      refreshUI();
     });
 }
 
@@ -487,6 +496,7 @@ function getAllDepartment(selectElement) {
       });
     })
     .catch(function (error) {
+      notificationService.showError("Không thể tải danh sách khoa");
       console.error("Lỗi không tìm được:", error);
     });
 }
@@ -586,5 +596,51 @@ function kiemTraEmail() {
   } else {
     emailInput.style.border = ""; // Xóa viền đỏ nếu email hợp lệ
     emailInput.setCustomValidity(""); // Không có lỗi
+  }
+}
+
+// Function to export data to Excel
+function exportToExcel() {
+  try {
+    const dataToExport = filteredData.length > 0 ? filteredData : dsBS;
+    
+    if (!dataToExport || dataToExport.length === 0) {
+      notificationService.showError("Không có dữ liệu để xuất");
+      return;
+    }
+    
+    const formattedData = dataToExport.map(item => ({
+      "Mã bác sĩ": item.doctorId,
+      "Họ tên": item.fullName || "Chưa có",
+      "Ngày sinh": formatDate(item.dateOfBirth) || "Chưa có",
+      "Giới tính": item.gender || "Chưa có",
+      "Bằng cấp": getBangCapText(item.degree) || "Chưa có",
+      "Khoa": item.departmentId || "Chưa có",
+      "Số điện thoại": item.phone || "Chưa có",
+      "Địa chỉ": item.address || "Chưa có"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "DanhSachBacSi");
+    
+    // Set column widths
+    const wscols = [
+      { wch: 15 }, // Mã bác sĩ
+      { wch: 30 }, // Họ tên
+      { wch: 15 }, // Ngày sinh
+      { wch: 10 }, // Giới tính
+      { wch: 25 }, // Bằng cấp
+      { wch: 15 }, // Khoa
+      { wch: 15 }, // Số điện thoại
+      { wch: 40 }  // Địa chỉ
+    ];
+    worksheet['!cols'] = wscols;
+    
+    XLSX.writeFile(workbook, "DanhSachBacSi.xlsx");
+    notificationService.showSuccess("Xuất dữ liệu thành công");
+  } catch (error) {
+    console.error("Lỗi khi xuất dữ liệu:", error);
+    notificationService.showError("Không thể xuất dữ liệu");
   }
 }

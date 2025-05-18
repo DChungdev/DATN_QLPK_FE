@@ -19,6 +19,7 @@
   <script src="../assets/vendor/axios.min.js"></script>
   <script src="../assets/services/axios.js"></script>
   <script src="../assets/services/departmentService.js"></script>
+  <script src="../assets/services/notificationService.js"></script>
   <style>
     .data-table {
       background: white;
@@ -200,31 +201,116 @@
       background-color: #c82333;
       border-color: #bd2130;
     }
+
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 16px;
+      margin-bottom: 10px;
+      min-width: 300px;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      animation: slideIn 0.3s ease-out;
+      display: none;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .toast.fade-out {
+      opacity: 0;
+    }
+
+    .toast.success {
+      border-left: 4px solid #28a745;
+    }
+
+    .toast.error {
+      border-left: 4px solid #dc3545;
+    }
+
+    .toast-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .toast.error .toast-icon {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .toast-content {
+      flex: 1;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .toast.success .toast-content {
+      color: #28a745;
+    }
+
+    .toast.error .toast-content {
+      color: #dc3545;
+    }
+
+    .toast-close {
+      margin-left: 12px;
+      cursor: pointer;
+      color: #666;
+      font-size: 18px;
+      padding: 4px;
+      line-height: 1;
+      background: none;
+      border: none;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="m-popup-block" id="success-popup" style="top: 8%;z-index: 101;">
-    <div class="m-popup-item">
-      <div class="m-popup-icon m-popup-icon-success"></div>
-      <div class="m-popup-text-success">
-        <span>Thao tác thành công!</span>
-      </div>
-      <div class="m-popup-tool">
-        <span class="m-popup-close"></span>
-      </div>
-    </div>
-  </div>
-  <div id="error-popup" class="m-popup-block" style="top: 8%; z-index: 100;">
-    <div class="m-popup-item">
-      <div class="m-popup-text-error" style="width: calc(100% - 80px);">
-        <span>Có lỗi xảy ra!</span>
-      </div>
-      <div class="m-popup-tool">
-        <div class=""></div>
-      </div>
-    </div>
-  </div>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <div class="preloader">
     <div class="lds-ripple">
@@ -624,11 +710,13 @@
 
         try {
           await departmentService.createDepartment({ name, description });
-          showSuccess('Thêm khoa thành công');
+          // showSuccess('Thêm khoa thành công');
+          notificationService.showSuccess("Thêm khoa thành công!");
           $('#addDepartmentForm')[0].reset();
           loadDepartments();
         } catch (error) {
-          showError('Không thể thêm khoa');
+          // showError('Không thể thêm khoa');
+          notificationService.showError("Không thể thêm khoa!");
         }
       });
 
@@ -644,10 +732,12 @@
 
         try {
           await departmentService.updateDepartment(selectedDepartmentId, { name, description });
-          showSuccess('Cập nhật khoa thành công');
+          // showSuccess('Cập nhật khoa thành công');
+          notificationService.showSuccess("Cập nhật khoa thành công!");
           loadDepartments();
         } catch (error) {
-          showError('Không thể cập nhật khoa');
+          // showError('Không thể cập nhật khoa');
+          notificationService.showError("Không thể cập nhật khoa!");
         }
       });
 
@@ -655,10 +745,12 @@
       $('#btnDelete').click(async function() {
         try {
           await departmentService.deleteDepartment(selectedDepartmentId);
-          showSuccess('Xóa khoa thành công');
+          // showSuccess('Xóa khoa thành công');
+          notificationService.showSuccess("Xóa khoa thành công!");
           loadDepartments();
         } catch (error) {
-          showError('Không thể xóa khoa');
+          // showError('Không thể xóa khoa');
+          notificationService.showError("Không thể xóa khoa!");
         }
       });
 
@@ -700,7 +792,8 @@
         $('#detail-description').text(department.description || '');
         $('#dialog-department-detail').modal('show');
       } catch (error) {
-        showError('Không thể tải thông tin khoa');
+        // showError('Không thể tải thông tin khoa');
+        notificationService.showError("Không thể tải thông tin khoa!");
       }
     }
 
@@ -713,7 +806,8 @@
         $('#description-edit').val(department.description || '');
         $('#edit-department').modal('show');
       } catch (error) {
-        showError('Không thể tải thông tin khoa');
+        // showError('Không thể tải thông tin khoa');
+        notificationService.showError("Không thể tải thông tin khoa!");
       }
     }
 
@@ -725,20 +819,12 @@
 
     // Show success message
     function showSuccess(message) {
-      $('#success-popup .m-popup-text-success span').text(message);
-      $('#success-popup').fadeIn();
-      setTimeout(() => {
-        $('#success-popup').fadeOut();
-      }, 3000);
+        notificationService.showSuccess(message);
     }
 
     // Show error message
     function showError(message) {
-      $('#error-popup .m-popup-text-error span').text(message);
-      $('#error-popup').fadeIn();
-      setTimeout(() => {
-        $('#error-popup').fadeOut();
-      }, 3000);
+        notificationService.showError(message);
     }
   </script>
 </body>

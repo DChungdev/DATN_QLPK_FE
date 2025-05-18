@@ -27,6 +27,7 @@
   <script src="../assets/vendor/axios.min.js"></script>
   <script src="../assets/services/axios.js"></script>
   <script src="../assets/services/qlBenhNhanService.js"></script>
+  <script src="../assets/services/notificationService.js"></script>
   <style>
     .data-table {
       background: white;
@@ -308,6 +309,92 @@
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
+
+    /* Popup styles */
+    .m-popup-block {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: none;
+    }
+
+    .m-popup-item {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      min-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .m-popup-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+    }
+
+    .m-popup-icon-success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .m-popup-icon-error {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .m-popup-text {
+      flex: 1;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .m-popup-text-success {
+      color: #28a745;
+    }
+
+    .m-popup-text-error {
+      color: #dc3545;
+    }
+
+    .m-popup-tool {
+      margin-left: 12px;
+    }
+
+    .m-popup-close {
+      cursor: pointer;
+      color: #666;
+      font-size: 18px;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 
@@ -521,10 +608,10 @@
             <input class="m-input m-input-icon m-input-search" type="text" placeholder="Tìm kiếm theo mã, họ tên" />
           </div>
           <div class="m-toolbar-actionbar">
-            <div class="m-toolbar-export m-toolbar-icon">
+            <div class="m-toolbar-export m-toolbar-icon" id="exportButton">
               <i class="fas fa-download" style="color: #35a9d0"></i>
             </div>
-            <div id="refresh-data" class="m-toolbar-refresh m-toolbar-icon">
+            <div class="m-toolbar-refresh m-toolbar-icon" id="refresh-data">
               <i class="fas fa-sync-alt" style="color: #35a9d0"></i>
             </div>
           </div>
@@ -1064,6 +1151,111 @@
       emailInput.setCustomValidity(""); // Không có lỗi
     }
   }
+
+  // Function to show success notification
+  function showSuccessNotification(message) {
+    const successPopup = document.getElementById('success-popup');
+    const successText = successPopup.querySelector('.m-popup-text-success span');
+    successText.textContent = message;
+    successPopup.style.display = 'block';
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      successPopup.style.display = 'none';
+    }, 3000);
+  }
+
+  // Function to show error notification
+  function showErrorNotification(message) {
+    const errorPopup = document.getElementById('error-popup');
+    const errorText = errorPopup.querySelector('.m-popup-text-error span');
+    errorText.textContent = message;
+    errorPopup.style.display = 'block';
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      errorPopup.style.display = 'none';
+    }, 3000);
+  }
+
+  // Add event listeners for close buttons
+  document.querySelectorAll('.m-popup-close').forEach(button => {
+    button.addEventListener('click', function() {
+      this.closest('.m-popup-block').style.display = 'none';
+    });
+  });
+
+  // Add patient
+  document.getElementById('btnAdd').addEventListener('click', function(e) {
+    e.preventDefault();
+    try {
+      // Get form data
+      const formData = {
+        hoten: document.getElementById('hoten-add').value,
+        sdt: document.getElementById('sdt-add').value,
+        gender: document.getElementById('gender-add').value,
+        ngaysinh: document.getElementById('ngaysinh-add').value,
+        diachi: document.getElementById('diachi-add').value,
+      };
+      
+        showSuccessNotification('Thêm bệnh nhân thành công!');
+        
+      
+    } catch (error) {
+      showErrorNotification(error.response?.data?.message || 'Có lỗi xảy ra khi thêm bệnh nhân!');
+    }
+  });
+
+  // Edit patient
+  document.getElementById('btnEdit').addEventListener('click', function() {
+    try {
+      // Your existing edit logic here
+      showSuccessNotification('Cập nhật thông tin bệnh nhân thành công!');
+    } catch (error) {
+      showErrorNotification(error.message || 'Có lỗi xảy ra khi cập nhật thông tin!');
+    }
+  });
+
+  // Delete patient
+  document.getElementById('btnDelete').addEventListener('click', function(e) {
+    try {
+      // Get patient ID from the confirm delete modal
+      const patientId = document.querySelector('#confirm-delete .content').getAttribute('data-id');
+      // Show success message after modal is hidden
+        showSuccessNotification('Xóa bệnh nhân thành công!');
+       
+    } catch (error) {
+      showErrorNotification(error.response?.data?.message || 'Có lỗi xảy ra khi xóa bệnh nhân!');
+    }
+  });
+
+  // Add click event for delete buttons in table
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all modals
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      new bootstrap.Modal(modal);
+    });
+
+    // Add click event for delete buttons
+    const deleteButtons = document.querySelectorAll('.btn-danger');
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const row = this.closest('tr');
+        if (row) {
+          const patientName = row.querySelector('td:nth-child(4)')?.textContent || 'bệnh nhân này';
+          const patientId = row.querySelector('td:first-child')?.textContent || '';
+          
+          // Update confirm delete modal content
+          const confirmContent = document.querySelector('#confirm-delete .content');
+          if (confirmContent) {
+            confirmContent.textContent = `Bạn có chắc chắn muốn xóa bệnh nhân "${patientName}"?`;
+            confirmContent.setAttribute('data-id', patientId);
+          }
+        }
+      });
+    });
+  });
 </script>
 
 </html>

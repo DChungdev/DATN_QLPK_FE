@@ -23,12 +23,14 @@ $(document).ready(function () {
     
         // Kiểm tra các trường dữ liệu
         if (!tenDichVu || !donGiaValue) {
-            showErrorPopup("Thêm không thành công: Tên dịch vụ và giá không được để trống!");
+            // showErrorPopup("Thêm không thành công: Tên dịch vụ và giá không được để trống!");
+            notificationService.showError("Thêm không thành công: Tên dịch vụ và giá không được để trống!");
             return;
         }
     
         if (isNaN(parseFloat(donGiaValue)) || parseFloat(donGiaValue) <= 0) {
-            showErrorPopup("Thêm không thành công: Giá phải là số hợp lệ!");
+            // showErrorPopup("Thêm không thành công: Giá phải là số hợp lệ!");
+            notificationService.showError("Thêm không thành công: Giá phải là số hợp lệ!");
             return;
         }
     
@@ -42,11 +44,13 @@ $(document).ready(function () {
             .then(() => {
                 loadServices();
                 $('#dialog-add').modal('hide');
-                showSuccessPopup("Thêm dịch vụ thành công!");
+                // showSuccessPopup("Thêm dịch vụ thành công!");
+                notificationService.showSuccess("Thêm dịch vụ thành công!");
             })
             .catch((error) => {
                 console.error('Lỗi khi thêm dịch vụ:', error);
-                showErrorPopup("Thêm không thành công: Đã xảy ra lỗi từ server!");
+                // showErrorPopup("Thêm không thành công: Đã xảy ra lỗi từ server!");
+                notificationService.showError("Thêm không thành công: Đã xảy ra lỗi từ server!");
             });
     });
     
@@ -56,7 +60,8 @@ $(document).ready(function () {
         const service = services.find(s => s.id === serviceId);
     
         if (!service) {
-            showErrorPopup("Không tìm thấy dịch vụ để chỉnh sửa.");
+            // showErrorPopup("Không tìm thấy dịch vụ để chỉnh sửa.");
+            notificationService.showError("Không tìm thấy dịch vụ để chỉnh sửa.");
             return;
         }
     
@@ -73,12 +78,14 @@ $(document).ready(function () {
     
             // Kiểm tra các trường dữ liệu
             if (!tenDichVu || !donGiaValue) {
-                showErrorPopup("Sửa không thành công: Tên dịch vụ và giá không được để trống!");
+                // showErrorPopup("Sửa không thành công: Tên dịch vụ và giá không được để trống!");
+                notificationService.showError("Sửa không thành công: Tên dịch vụ và giá không được để trống!");
                 return;
             }
     
             if (isNaN(parseFloat(donGiaValue)) || parseFloat(donGiaValue) <= 0) {
-                showErrorPopup("Sửa không thành công: Giá phải là số hợp lệ!");
+                // showErrorPopup("Sửa không thành công: Giá phải là số hợp lệ!");
+                notificationService.showError("Sửa không thành công: Giá phải là số hợp lệ!");
                 return;
             }
     
@@ -93,11 +100,13 @@ $(document).ready(function () {
                 .then(() => {
                     loadServices();
                     $('#dialog-edit').modal('hide');
-                    showSuccessPopup("Sửa dịch vụ thành công!");
+                    // showSuccessPopup("Sửa dịch vụ thành công!");
+                    notificationService.showSuccess("Sửa dịch vụ thành công!");
                 })
                 .catch((error) => {
                     console.error('Lỗi khi chỉnh sửa dịch vụ:', error);
-                    showErrorPopup("Sửa không thành công: Đã xảy ra lỗi từ server!");
+                    // showErrorPopup("Sửa không thành công: Đã xảy ra lỗi từ server!");
+                    notificationService.showError("Sửa không thành công: Đã xảy ra lỗi từ server!");
                 });
         });
     });
@@ -119,17 +128,20 @@ $(document).ready(function () {
         const serviceId = $(this).data('serviceId');
         
         if (!serviceId) {
-            showErrorPopup('Không tìm thấy ID dịch vụ để xóa!');
+            // showErrorPopup('Không tìm thấy ID dịch vụ để xóa!');
+            notificationService.showError('Không tìm thấy ID dịch vụ để xóa!');
             return;
         }
 
         axiosJWT.delete(`/api/services/${serviceId}`)
             .then(() => {
                 loadServices();
-                showSuccessPopup("Xóa dịch vụ thành công!");
+                // showSuccessPopup("Xóa dịch vụ thành công!");
+                notificationService.showSuccess("Xóa dịch vụ thành công!");
             })
             .catch((error) => {
-                showErrorPopup();
+                // showErrorPopup();
+                notificationService.showError("Xóa dịch vụ thành công!");
                 console.error('Lỗi khi xóa dịch vụ:', error);
             });
     });
@@ -143,7 +155,8 @@ function loadServices() {
             displayServices(services);
         })
         .catch((error) => {
-            console.error('Lỗi khi tải danh sách dịch vụ:', error);
+            // console.error('Lỗi khi tải danh sách dịch vụ:', error);
+            notificationService.showError("Lỗi khi tải danh sách dịch vụ!");
         });
 }
 

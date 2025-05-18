@@ -163,10 +163,12 @@ function getData() {
         refreshUI();
       } else {
         console.log("Không có dữ liệu lịch khám");
+        notificationService.showError("Không có dữ liệu lịch khám");
       }
     })
     .catch(function (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
+      notificationService.showError("Lỗi! Không thể lấy dữ liệu lịch khám.");
     });
 }
 
@@ -363,6 +365,7 @@ function fillEditModal(appointment) {
     })
     .catch(function(error) {
       console.error("Lỗi khi lấy thông tin bệnh nhân:", error);
+      notificationService.showError("Lỗi! Không thể lấy thông tin bệnh nhân.");
     });
 
   // Lấy thông tin bác sĩ
@@ -394,6 +397,7 @@ function fillEditModal(appointment) {
     })
     .catch(function(error) {
       console.error("Lỗi khi lấy thông tin bác sĩ:", error);
+      notificationService.showError("Lỗi! Không thể lấy thông tin bác sĩ.");
     });
 
   // Hiển thị thông tin lịch khám
@@ -433,13 +437,15 @@ function editAppointment() {
     .put(`/api/appointments/${appointmentId}`, appointment)
     .then(function (response) {
       console.log("Cập nhật thành công:", response.data);
-      showPopup("success", "Thành công! Lịch khám đã được cập nhật.");
+      // showPopup("success", "Thành công! Lịch khám đã được cập nhật.");
+      notificationService.showSuccess("Cập nhật lịch khám thành công!");
       $("#dialog-appointment-edit").modal("hide");
       getData();
     })
     .catch(function (error) {
       console.error("Lỗi khi cập nhật:", error);
-      showPopup("error", "Lỗi! Không thể cập nhật lịch khám.");
+      // showPopup("error", "Lỗi! Không thể cập nhật lịch khám.");
+      notificationService.showError("Lỗi! Không thể cập nhật lịch khám.");
     });
 }
 
@@ -448,13 +454,15 @@ function deleteAppointment() {
     .delete(`/api/appointments/${appointmentId}`)
     .then(function (response) {
       console.log("Xóa thành công:", response.data);
-      showPopup("success", "Thành công! Lịch khám đã được xóa.");
+      // showPopup("success", "Thành công! Lịch khám đã được xóa.");
+      notificationService.showSuccess("Xóa lịch khám thành công!");
       $("#dialog-confirm-delete").modal("hide");
       getData();
     })
     .catch(function (error) {
       console.error("Lỗi khi xóa:", error);
-      showPopup("error", "Lỗi! Không thể xóa lịch khám.");
+      // showPopup("error", "Lỗi! Không thể xóa lịch khám.");
+      notificationService.showError("Lỗi! Không thể xóa lịch khám.");
     });
 }
 
@@ -497,14 +505,16 @@ function saveExaminationResult() {
       $("#dialog-add-result").modal("hide");
       
       // Hiển thị thông báo thành công
-      showPopup("success", "Thành công! Đã thêm kết quả khám.");
+      // showPopup("success", "Thành công! Đã thêm kết quả khám.");
+      notificationService.showSuccess("Thêm kết quả khám thành công!");
       
       // Tải lại dữ liệu
       getData();
     })
     .catch(function(error) {
       console.error("Lỗi khi thêm kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể thêm kết quả khám.");
+      // showPopup("error", "Lỗi! Không thể thêm kết quả khám.");
+      notificationService.showError("Lỗi! Không thể thêm kết quả khám.");
     });
 }
 
@@ -527,7 +537,8 @@ async function exportToExcel() {
     XLSX.writeFile(workbook, "LichKham.xlsx");
   } catch (error) {
     console.error("Lỗi khi xuất dữ liệu:", error);
-    showPopup("error", "Không thể xuất dữ liệu!");
+    // showPopup("error", "Không thể xuất dữ liệu!");
+    notificationService.showError("Không thể xuất dữ liệu!");
   }
 }
 
@@ -568,6 +579,7 @@ function getAllDepartment(selectElement) {
     })
     .catch(function (error) {
       console.error("Lỗi khi lấy danh sách khoa:", error);
+      notificationService.showError("Lỗi! Không thể lấy danh sách khoa.");
     });
 }
 
@@ -589,6 +601,7 @@ function getDoctorsByDepartment(departmentId, selectElement) {
         })
         .catch(function (error) {
         console.error("Lỗi khi lấy danh sách bác sĩ:", error);
+        notificationService.showError("Lỗi! Không thể lấy danh sách bác sĩ.");
         reject(error);
         });
   });
@@ -626,6 +639,7 @@ function getAllService(serviceSelectEdit) {
     })
     .catch(function (error) {
       console.error("Lỗi khi lấy danh sách dịch vụ:", error);
+      notificationService.showError("Lỗi! Không thể lấy danh sách dịch vụ.");
     });
 }
 
@@ -690,7 +704,8 @@ function viewExaminationResult(appointmentId) {
     })
     .catch(function(error) {
       console.error("Lỗi khi lấy kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể lấy kết quả khám.");
+      // showPopup("error", "Lỗi! Không thể lấy kết quả khám.");
+      notificationService.showError("Lỗi! Không thể lấy kết quả khám.");
     });
 }
 
@@ -713,7 +728,8 @@ function fillEditResultModal(resultId) {
     })
     .catch(function(error) {
       console.error("Lỗi khi lấy thông tin kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể lấy thông tin kết quả khám.");
+      // showPopup("error", "Lỗi! Không thể lấy thông tin kết quả khám.");
+      notificationService.showError("Lỗi! Không thể lấy thông tin kết quả khám.");
     });
 }
 
@@ -736,14 +752,15 @@ function saveEditExaminationResult() {
       $("#dialog-edit-result").modal("hide");
       
       // Hiển thị thông báo thành công
-      showPopup("success", "Thành công! Đã cập nhật kết quả khám.");
-      
+      // showPopup("success", "Thành công! Đã cập nhật kết quả khám.");
+      notificationService.showSuccess("Cập nhật kết quả khám thành công!");
       // Tải lại dữ liệu
       getData();
     })
     .catch(function(error) {
       console.error("Lỗi khi cập nhật kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể cập nhật kết quả khám.");
+      // showPopup("error", "Lỗi! Không thể cập nhật kết quả khám.");
+      notificationService.showError("Lỗi! Không thể cập nhật kết quả khám.");
     });
 }
 
@@ -752,12 +769,14 @@ function deleteExaminationResult(resultId) {
     .delete(`/api/medical-results/${resultId}`)
     .then(function (response) {
       console.log("Xóa kết quả khám thành công:", response.data);
-      showPopup("success", "Thành công! Kết quả khám đã được xóa.");
+      // showPopup("success", "Thành công! Kết quả khám đã được xóa.");
+      notificationService.showSuccess("Xóa kết quả khám thành công!");
       $("#dialog-confirm-delete-result").modal("hide");
       getData();
     })
     .catch(function (error) {
       console.error("Lỗi khi xóa kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể xóa kết quả khám.");
+      // showPopup("error", "Lỗi! Không thể xóa kết quả khám.");
+      notificationService.showError("Lỗi! Không thể xóa kết quả khám.");
   });
 }

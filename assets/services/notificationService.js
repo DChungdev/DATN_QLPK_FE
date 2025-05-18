@@ -357,7 +357,7 @@ function showDesktopNotification(notification) {
     // Auto close after 5 seconds
     setTimeout(() => {
         desktopNotification.close();
-    }, 5000);
+    }, 3000);
 }
 
 // Get icon class based on notification type
@@ -652,7 +652,7 @@ function showNotification(message, type = 'info', playSound = true) {
                 notification.removeChild(toast);
             }
         }, 300);
-    }, 5000);
+    }, 3000);
     
     // Add click handler for close button
     const closeButton = toast.querySelector('.close');
@@ -721,10 +721,268 @@ function demoNotifications() {
     // Show warning notification
     setTimeout(() => {
         showWarning("Đây là thông báo cảnh báo!");
-    }, 5000);
+    }, 3000);
     
     // Show info notification
     setTimeout(() => {
         showInfo("Đây là thông báo thông tin!");
     }, 7000);
-} 
+}
+
+// Notification Service
+const notificationService = {
+    // Show success notification
+    showSuccess: function(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast success';
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="toast-content">
+                ${message}
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        this.showToast(toast);
+    },
+
+    // Show error notification
+    showError: function(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast error';
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="toast-content">
+                ${message}
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        this.showToast(toast);
+    },
+
+    // Show warning notification
+    showWarning: function(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast warning';
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="toast-content">
+                ${message}
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        this.showToast(toast);
+    },
+
+    // Show info notification
+    showInfo: function(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast info';
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="toast-content">
+                ${message}
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        this.showToast(toast);
+    },
+
+    // Helper function to show toast
+    showToast: function(toast) {
+        // Get or create toast container
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        // Add toast to container
+        container.appendChild(toast);
+        toast.style.display = 'flex';
+        
+        // Add close button functionality
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 500);
+        });
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('fade-out');
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 500);
+            }
+        }, 3000);
+    },
+
+    // Add required styles
+    addStyles: function() {
+        const styles = `
+            .toast-container {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 99999;
+            }
+
+            .toast {
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                padding: 16px;
+                margin-bottom: 10px;
+                min-width: 300px;
+                max-width: 400px;
+                display: flex;
+                align-items: center;
+                animation: slideIn 0.3s ease-out;
+                display: none;
+                opacity: 1;
+                transition: opacity 0.5s ease-out;
+            }
+
+            .toast.fade-out {
+                opacity: 0;
+            }
+
+            .toast.success {
+                border-left: 4px solid #28a745;
+            }
+
+            .toast.error {
+                border-left: 4px solid #dc3545;
+            }
+
+            .toast.warning {
+                border-left: 4px solid #ffc107;
+            }
+
+            .toast.info {
+                border-left: 4px solid #17a2b8;
+            }
+
+            .toast-icon {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                flex-shrink: 0;
+            }
+
+            .toast.success .toast-icon {
+                background-color: #28a745;
+                color: white;
+            }
+
+            .toast.error .toast-icon {
+                background-color: #dc3545;
+                color: white;
+            }
+
+            .toast.warning .toast-icon {
+                background-color: #ffc107;
+                color: white;
+            }
+
+            .toast.info .toast-icon {
+                background-color: #17a2b8;
+                color: white;
+            }
+
+            .toast-content {
+                flex: 1;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .toast.success .toast-content {
+                color: #28a745;
+            }
+
+            .toast.error .toast-content {
+                color: #dc3545;
+            }
+
+            .toast.warning .toast-content {
+                color: #856404;
+            }
+
+            .toast.info .toast-content {
+                color: #17a2b8;
+            }
+
+            .toast-close {
+                margin-left: 12px;
+                cursor: pointer;
+                color: #666;
+                font-size: 18px;
+                padding: 4px;
+                line-height: 1;
+                background: none;
+                border: none;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+
+        // Add styles if not already added
+        if (!document.getElementById('toast-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'toast-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+        }
+    }
+};
+
+// Initialize styles when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    notificationService.addStyles();
+});
+
+// Export the service
+window.notificationService = notificationService; 

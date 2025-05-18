@@ -558,7 +558,7 @@ let appointmentState = {
 
 // Update handleChatbotMessage function
 async function handleChatbotMessage(messageContent) {
-    const OPENROUTER_API_KEY = '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';
+    const OPENROUTER_API_KEY = '';
     const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
     
     // Tạo tin nhắn local cho người dùng
