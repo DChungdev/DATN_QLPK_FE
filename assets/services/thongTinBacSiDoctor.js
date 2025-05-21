@@ -180,11 +180,14 @@ async function updateDoctorInfo() {
             genderValue = "Female";
         }
 
+        // Get date of birth from input
+        const dateOfBirth = $("#ngaySinh").val() ? new Date($("#ngaySinh").val()).toISOString() : doctor.dateOfBirth;
+
         // Prepare doctor data for update
         const updatedDoctor = {
             doctorId: doctor.doctorId,
             fullName: $("#hoten").val(),
-            dateOfBirth: doctor.dateOfBirth,
+            dateOfBirth: dateOfBirth,
             gender: genderValue,
             phone: $("#sdt").val(),
             address: $("#diaChi").val(),

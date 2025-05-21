@@ -84,8 +84,8 @@ $(document).ready(function () {
   });
   
   // Gắn sự kiện cho nút sửa kết quả khám từ modal xem
-  $(document).on("click", "#view-result-edit-btn", function () {
-    const resultId = $(this).attr("data-result-id");
+  $(document).on("click", "#btnEditResult", function () {
+    const resultId = $("#view-result-id").text();
     // Đóng modal xem và mở modal sửa
     $("#dialog-view-result").modal("hide");
     // Lấy thông tin để điền vào modal sửa
@@ -115,7 +115,34 @@ $(document).ready(function () {
   
   // Xử lý sự kiện khi nhấn nút lưu chỉnh sửa kết quả khám
   $(document).on("click", "#save-edit-result-btn", function () {
-    saveEditExaminationResult();
+    const resultId = $("#edit-result-id").text();
+    const appointmentId = $("#edit-result-appointment").text();
+    const symptoms = $("#edit-result-symptoms").val();
+    const diagnosis = $("#edit-result-diagnosis").val();
+    const notes = $("#edit-result-notes").val();
+    const treatmentPlan = $("#edit-result-treatment").val();
+
+    const data = {
+      appointment: parseInt(appointmentId),
+      symptoms: symptoms,
+      diagnosis: diagnosis,
+      notes: notes,
+      treatmentPlan: treatmentPlan
+    };
+
+    axiosJWT.put(`/api/medical-results/${resultId}`, data)
+      .then(function(response) {
+        if (response.status === 200) {
+          showPopup("success", "Cập nhật kết quả khám thành công!");
+          $("#dialog-edit-result").modal("hide");
+          // Refresh data
+          getData();
+        }
+      })
+      .catch(function(error) {
+        console.error("Error updating medical result:", error);
+        showPopup("error", "Có lỗi xảy ra khi cập nhật kết quả khám!");
+      });
   });
 
   // Xử lý sự kiện khi nhấn nút xác nhận lịch khám
@@ -891,36 +918,6 @@ function fillEditResultModal(resultId) {
     .catch(function(error) {
       console.error("Lỗi khi lấy thông tin kết quả khám:", error);
       showPopup("error", "Lỗi! Không thể lấy thông tin kết quả khám.");
-    });
-}
-
-function saveEditExaminationResult() {
-  const result = {
-    id: $("#edit-result-id").text(),
-    symptoms: $("#edit-result-symptoms").val(),
-    diagnosis: $("#edit-result-diagnosis").val(),
-    notes: $("#edit-result-notes").val(),
-    treatmentPlan: $("#edit-result-treatment").val()
-  };
-
-  // Gửi dữ liệu kết quả khám đã chỉnh sửa lên máy chủ
-  axiosJWT
-    .put(`/api/medical-results/${result.id}`, result)
-    .then(function(response) {
-      console.log("Cập nhật kết quả khám thành công:", response.data);
-      
-      // Đóng modal
-      $("#dialog-edit-result").modal("hide");
-      
-      // Hiển thị thông báo thành công
-      showPopup("success", "Thành công! Đã cập nhật kết quả khám.");
-      
-      // Tải lại dữ liệu
-      getData();
-    })
-    .catch(function(error) {
-      console.error("Lỗi khi cập nhật kết quả khám:", error);
-      showPopup("error", "Lỗi! Không thể cập nhật kết quả khám.");
     });
 }
 

@@ -510,9 +510,10 @@ async function getDepartmentsInfo() {
     }
 }
 
-async function getDoctorsByDepartment(departmentId) {
+async function getDoctorsByDepartment1(departmentId) {
     try {
         const response = await axiosJWT.get(`/api/doctors/findbyDepartmentId/${departmentId}`);
+        console.log("ALOOOOO");
         return response.data;
     } catch (error) {
         console.error('Error fetching doctors:', error);
@@ -634,7 +635,8 @@ Chỉ trả về ID của khoa phù hợp nhất, không cần giải thích th�
                     appointmentState.data.reason = messageContent;
 
                     // Lấy danh sách bác sĩ của khoa
-                    const doctors = await getDoctorsByDepartment(departmentId);
+                    const doctors = await getDoctorsByDepartment1(departmentId);
+                    console.log(doctors);
                     if (doctors.length === 0) {
                         throw new Error('Không tìm thấy bác sĩ phù hợp');
                     }
